@@ -130,19 +130,3 @@ void mover_motor(int nmotor, int direccion){
 }
 
 
-
-void setup_timer0(){
-	
-	//Timer 0 para contar 1 mS 
-	
-	cli();
-	
-	TCCR0A |= (1 << WGM01);
-	TCCR0B |= (1 << CS01  | 1 << CS00);
-	
-	OCR0A = 125;
-	
-	sei();
-	
-	
-}
