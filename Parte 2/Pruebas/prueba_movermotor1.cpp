@@ -10,6 +10,9 @@
 
 #define SW1 PD0
 
+#define PORT_M1_EN PORTB
+#define PORT_M1_DI PORTD
+
 #define M1_EN PB5
 #define M1_DI PD4
 
@@ -25,17 +28,17 @@ volatile int fin = 0;
 
 void apagar_motor(){
 	
-	PORTB &= ~(1 << M1_EN);	
+PORT_M1_EN &= ~(1 << M1_EN);	
 }
-
- void mover_motor1(){
-	 
+ 
+void mover_motor1(){
+	
 	apagar_motor();
-	 
+	
 	while(fin != 1){
-		 
-		PORTB |= (1 << M1_DI);
-		PORTD |= (1 << M1_EN);
+		
+		PORT_M1_EN |= (1 << M1_EN);
+		PORT_M1_DI |= (1 << M1_DI);
 	 }
 	 
 	 fin = 0;
@@ -43,11 +46,11 @@ void apagar_motor(){
 	 
 	 while(fin!=1){
 		 
-		 PORTB |= (1<< M1_EN);
-		 PORTD &= ~(1 << M1_DI);
-	 }
-	 
-	 fin = 0;
+		 PORT_M1_EN  |= (1<< M1_EN);
+		 PORT_M1_DI  &= ~(1 << M1_DI);
+	}
+	
+	fin = 0;
  }
  
  
