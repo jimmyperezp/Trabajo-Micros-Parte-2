@@ -43,7 +43,7 @@ void SW1_bajada(){
 	
 	if (dir_m1 == 1){
 		
-		pos_m1 = 0;
+		pos_m1 = 1;
 
 	}
 
