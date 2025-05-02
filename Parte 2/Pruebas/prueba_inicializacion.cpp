@@ -7,9 +7,13 @@
 #define SW1 PD0
 #define SW5 PD1
 
+#define PORT_M1_EN PORTB
+#define PORT_M1_DI PORTD
 #define M1_EN PB5
 #define M1_DI PD4
 
+#define PORT_M5_EN PORTB
+#define PORT_M5_DI PORTD
 #define M5_EN PB6
 #define M5_DI PD5
 
@@ -20,13 +24,13 @@ void apagar_motor(int nmotor){
 		
 		case 1: 
 			
-			PORTB &= ~(1 << M1_EN);
+			PORT_M1_EN &= ~(1 << M1_EN);
 			
 		break;
 				
 		case 5: 
 		
-			PORTB &= ~(1 << M5_EN);
+			PORT_M5_EN &= ~(1 << M5_EN);
 			
 		break;
 		 
@@ -49,16 +53,16 @@ void mover_motor(int nmotor, int direccion){
 			
 			if (direccion == 1){
 				
-				PORTB |= (1 << M1_EN);  
-				PORTD |= (1 << M1_DI);
+				PORT_M1_EN |= (1 << M1_EN);  
+				PORT_M1_DI |= (1 << M1_DI);
 				dir_m1 = 1;
 			
 			}
 			
 			else{
 				
-				PORTB |= (1 << M1_EN);
-				PORTD &= ~(1 << M1_DI);
+				PORT_M1_EN |= (1 << M1_EN);
+				PORT_M1_DI &= ~(1 << M1_DI);
 				dir_m1 = 0;
 			}
 			
@@ -69,25 +73,21 @@ void mover_motor(int nmotor, int direccion){
 		
 		case 5:
 		
-
-		
 			if (direccion == 1){
 				
-				PORTB |= (1 << M5_EN);  
-				PORTD |= (1 << M5_DI);
+				PORT_M5_EN |= (1 << M5_EN);  
+				PORT_M5_DI |= (1 << M5_DI);
 				dir_m5 = 1;
 			
 			}
 			
 			else{
 				
-				PORTB |= (1 << M5_EN);
-				PORTD &= ~(1 << M5_DI);
+				PORT_M5_EN |= (1 << M5_EN);
+				PORT_M5_DI &= ~(1 << M5_DI);
 				dir_m5 = 0;
 			}
-	
-	
-		break;
+			break;
 		 
 		
 		default: 
@@ -127,7 +127,7 @@ void SW1_bajada(){
 	
 	if (dir_m1 == 1){
 		
-		pos_m1 = 0;
+		pos_m1 = 1;
 
 	}
 
