@@ -11,24 +11,37 @@
 #define SW5 PD1
 #define SW6 PB7
 
+//Mapeo de los pines del motor 1
+#define PORT_M1_EN PORTB
+#define PORT_M1_DI PORTD
 #define M1_EN PB5
 #define M1_DI PD4
 
+//Mapeo de los pines del motor 2
+#define PORT_M2 PORTL
 #define M2_EN PL3
 #define M2_DI PL0
- 
+
+//Mapeo de los pines del motor 3
+#define PORT_M3 PORTL
 #define M3_EN PL4
 #define M3_DI PL1
 
+
+//Mapeo de los pines del motor 4
+#define PORT_M4 PORTL
 #define M4_EN PL5
 #define M4_DI PL2
-  
+
+//Mapeo de los pines del motor 5
+#define PORT_M5_EN PORTB
+#define PORT_M5_DI PORTD
 #define M5_EN PB6
 #define M5_DI PD5
 
 
-volatile int dir_m1 = 0;
-volatile int dir_m5 = 0;
+static int dir_m1 = 0;
+static int dir_m5 = 0;
 
 
 void apagar_motor(int nmotor){
@@ -37,31 +50,31 @@ void apagar_motor(int nmotor){
 		
 		case 1: 
 			
-			PORTB &= ~(1 << M1_EN);
+			PORT_M1_EN &= ~(1 << M1_EN);
 			
 		break;
 		
 		case 2: 
 		
-			PORTL &= ~(1 << M2_EN);
+			PORT_M2 &= ~(1 << M2_EN);
 			
 		break;
 		
 		case 3: 
 
-			PORTL &= ~(1 << M3_EN);
+			PORT_M3 &= ~(1 << M3_EN);
 			
 		break;
 		
 		case 4: 
 		
-			PORTL &= ~(1 << M4_EN);
+			PORT_M4 &= ~(1 << M4_EN);
 			
 		break;
 		
 		case 5: 
 		
-			PORTB &= ~(1 << M5_EN);
+			PORT_M5_EN &= ~(1 << M5_EN);
 			
 		break;
 		 
@@ -84,16 +97,16 @@ void mover_motor(int nmotor, int direccion){
 			
 			if (direccion == 1){
 				
-				PORTB |= (1 << M1_EN);  
-				PORTD |= (1 << M1_DI);
+				PORT_M1_EN |= (1 << M1_EN);  
+				PORT_M1_DI |= (1 << M1_DI);
 				dir_m1 = 1;
 			
 			}
 			
 			else{
 				
-				PORTB |= (1 << M1_EN);
-				PORTD &= ~(1 << M1_DI);
+				PORT_M1_EN |= (1 << M1_EN);
+				PORT_M1_DI &= ~(1 << M1_DI);
 				dir_m1 = 0;
 			}
 			
@@ -104,14 +117,15 @@ void mover_motor(int nmotor, int direccion){
 		
 			if (direccion == 1){
 				
-				PORTL |= ((1<<M2_EN) | (1<<M2_DI));
+				PORT_M2 |= ((1<<M2_EN) | (1<<M2_DI));
 				
 			}
 			
 			else{
 				
-				PORTL |= ((1<<M2_EN);
-				PORTL &= ~(1<<M2_DI);
+				PORT_M2 |= ((1<<M2_EN);
+				PORT_M2 &= ~(1<<M2_DI);
+
 			}
 			
 
@@ -122,14 +136,14 @@ void mover_motor(int nmotor, int direccion){
 
 			if (direccion == 1){
 				
-				PORTL |= ((1<<M3_EN) | (1<<M3_DI));
+				PORT_M3 |= ((1<<M3_EN) | (1<<M3_DI));
 				
 			}
 			
 			else{
 				
-				PORTL |= ((1<<M3_EN);
-				PORTL &= ~(1<<M3_DI);
+				PORT_M3 |= ((1<<M3_EN);
+				PORT_M3 &= ~(1<<M3_DI);
 			}
 			
 
@@ -140,14 +154,13 @@ void mover_motor(int nmotor, int direccion){
 
 			if (direccion == 1){
 				
-				PORTL |= ((1<<M4_EN) | (1<<M4_DI));
-				
+				PORT_M4 |= ((1<<M4_EN) | (1<<M4_DI));				
 			}
 			
 			else{
 				
-				PORTL |= ((1<<M4_EN);
-				PORTL &= ~(1<<M4_DI);
+				PORT_M4 |= ((1<<M4_EN);
+				PORT_M4 &= ~(1<<M4_DI);
 			}
 			
 	
@@ -159,16 +172,16 @@ void mover_motor(int nmotor, int direccion){
 		
 			if (direccion == 1){
 				
-				PORTB |= (1 << M5_EN);  
-				PORTD |= (1 << M5_DI);
+				PORT_M5_EN |= (1 << M5_EN);  
+				PORT_M5_DI |= (1 << M5_DI);
 				dir_m5 = 1;
 			
 			}
 			
 			else{
 				
-				PORTB |= (1 << M5_EN);
-				PORTD &= ~(1 << M5_DI);
+				PORT_M5_EN |= (1 << M5_EN);
+				PORT_M5_DI &= ~(1 << M5_DI);
 				dir_m5 = 0;
 			}
 	
