@@ -11,7 +11,7 @@
 #define SW5 PD1
 #define SW6 PB7
 
-//Pines, puerto y direcciones del motor 5
+//Pines, puerto y direcciones del motor 1
 #define PORT_M1_EN PORTB
 #define PORT_M1_DI PORTD
 #define M1_EN PB5
