@@ -1,7 +1,10 @@
 //main de la parte 2;
 
+
 #include "encabezado_parte2.h"
 #include "encabezado_general.h"
+
+
 
 //INTERRUPCIONES
 
@@ -20,14 +23,11 @@ ISR(PCINT16){
 	sw6_flanco();
 }
 
-ISR(TIMER0_COMPA_vect){
-	//esta interrupción salta cada 1 mS
+ISR(TIMER0_COMPA_vect){	//esta interrupción salta cada 1 mS
+	
+	milisegundo();	
 }
 
-//BUCLE 
-void loop(){
-	
-}
 
 //Programa Principal
 int main(void){
@@ -38,5 +38,7 @@ int main(void){
 		
 		loop();
 	}
-
-}
+	
+}	
+	
+	
