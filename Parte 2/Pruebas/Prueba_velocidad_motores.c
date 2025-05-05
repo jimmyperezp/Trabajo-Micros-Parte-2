@@ -36,53 +36,24 @@ void setup_timer1(){
 	
 }
 
-
-void mover_motor(int nmotor, int direccion){
-	
-	
-	apagar_motor(nmotor);	//1º Lo apagamos para hacer el cambio de direccion
+void apagar_motor(int nmotor){
 	
 	switch(nmotor){
 		
 		case 1: 
 			
-			if (direccion == 1){
-				
-				PORT_M1_EN |= (1 << M1_EN);  
-				PORT_M1_DI |= (1 << M1_DI);
-				dir_m1 = 1;
-			
-			}
-			
-			else{
-				
-				PORT_M1_EN |= (1 << M1_EN);
-				PORT_M1_DI &= ~(1 << M1_DI);
-				dir_m1 = 0;
-			}
-			
+			TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
+
 			
 		break;
 		
-
 		
-		case 5:
-		
-			if (direccion == 1){
-				
-				PORT_M5_EN |= (1 << M5_EN);  
-				PORT_M5_DI |= (1 << M5_DI);
-				dir_m5 = 1;
+		case 5: 
 			
-			}
+			TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
 			
-			else{
-				
-				PORT_M5_EN |= (1 << M5_EN);
-				PORT_M5_DI &= ~(1 << M5_DI);
-				dir_m5 = 0;
-			}
-			break;
+			
+		break;
 		 
 		
 		default: 
@@ -91,6 +62,67 @@ void mover_motor(int nmotor, int direccion){
 	}
 }
 
+
+void mover_motor(int nmotor, int direccion){
+	
+
+	apagar_motor(nmotor);	//1º Lo apagamos para hacer el cambio de direccion
+	
+	switch(nmotor){
+		
+		case 1: 
+			
+			if (direccion == 1){
+				
+				TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
+				PORT_M1_DI |= (1 << M1_DI);
+				dir_m1 = 1;
+			
+			}
+			
+			else{
+				
+				TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
+				PORT_M1_DI &= ~(1 << M1_DI);
+				dir_m1 = 0;
+			}
+			
+			
+	
+
+		break;
+		
+		case 5:
+		
+			if (direccion == 1){
+				
+				TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
+				PORT_M5_DI |= (1 << M5_DI);
+				dir_m5 = 1;
+			
+			}
+			
+			else{
+				
+				
+				TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
+				PORT_M5_DI &= ~(1 << M5_DI);
+				dir_m5 = 0;
+			}
+	
+		break;
+		 
+		
+		default: 
+		break;
+		
+	}
+}
+
+	
+	
+
+
 int main (void) {
 	
 	setup_timer1;
@@ -98,7 +130,11 @@ int main (void) {
 	
 	mover_motor(1,UP_M1);
 	
-	
-	
+	while(cont<1000000){
+		cont++;
 	
 	}
+	
+	mover_motor(1,DOWN_M1);
+	
+}
