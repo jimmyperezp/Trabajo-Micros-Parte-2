@@ -1,4 +1,3 @@
-
 //Prueba para ver direcciones de los motores
 
 
@@ -11,7 +10,7 @@
 #define PORT_M1_DI PORTD
 #define M1_EN PB5
 #define M1_DI PD4
-#define uint8_t UP_M1 1
+#define UP_M1 1
 #define DOWN_M1 0
 
 //Pines, puerto y direcciones del motor 5
@@ -21,6 +20,7 @@
 #define M5_DI PD5
 #define UP_M5 1
 #define DOWN_M5 0
+#define d_PWM 500
 
 //VARIABLES PARTE 2:
 volatile int dir_m1 = 0;
@@ -36,7 +36,7 @@ void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 	TCCR1A |= ((1<<COM1A1) | (1<<COM1B1) | (1<<WGM11));
 	TCCR1B |= ((1<<WGM13) | (1<<CS11));
 	
-	//TOP en ICR1 
+	//TOP en ICR1
 	ICR1 = 1000;
 	
 	//OCR1(A y B)
@@ -44,31 +44,31 @@ void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 	OCR1B = d_PWM;
 	
 	//Habilito las interrupciones por coincidencia en OCR1A y OCR1B
-	TIMSK |= ((1 << OCIE1A) | (1 << OCIE1B) ); 	
-	 
+	TIMSK1 |= ((1 << OCIE1A) | (1 << OCIE1B) );
+	
 	
 }
 void apagar_motor(int nmotor){
 	
 	switch(nmotor){
 		
-		case 1: 
-			
-			TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
+		case 1:
+		
+		TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
 
-			
+		
 		break;
 		
 		
-		case 5: 
-			
-			TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
-			
-			
-		break;
-		 
+		case 5:
 		
-		default: 
+		TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
+		
+		
+		break;
+		
+		
+		default:
 		break;
 		
 	}
@@ -82,50 +82,50 @@ void mover_motor(int nmotor, int direccion){
 	
 	switch(nmotor){
 		
-		case 1: 
+		case 1:
+		
+		if (direccion){
 			
-			if (direccion == 1){
-				
-				TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
-				PORT_M1_DI |= (1 << M1_DI);
-				dir_m1 = 1;
+			TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
+			PORT_M1_DI |= (1 << M1_DI);
+			dir_m1 = 1;
 			
-			}
+		}
+		
+		else{
 			
-			else{
-				
-				TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
-				PORT_M1_DI &= ~(1 << M1_DI);
-				dir_m1 = 0;
-			}
-			
-			
-	
+			TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
+			PORT_M1_DI &= ~(1 << M1_DI);
+			dir_m1 = 0;
+		}
+		
+		
+		
 
 		break;
 		
 		case 5:
 		
-			if (direccion == 1){
-				
-				TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
-				PORT_M5_DI |= (1 << M5_DI);
-				dir_m5 = 1;
+		if (direccion){
 			
-			}
+			TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
+			PORT_M5_DI |= (1 << M5_DI);
+			dir_m5 = 1;
 			
-			else{
-				
-				
-				TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
-				PORT_M5_DI &= ~(1 << M5_DI);
-				dir_m5 = 0;
-			}
-	
-		break;
-		 
+		}
 		
-		default: 
+		else{
+			
+			
+			TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
+			PORT_M5_DI &= ~(1 << M5_DI);
+			dir_m5 = 0;
+		}
+		
+		break;
+		
+		
+		default:
 		break;
 		
 	}
@@ -136,11 +136,12 @@ void mover_motor(int nmotor, int direccion){
 
 int main(void){
 	
-		
+	
 	DDRB |= ((1<<M5_EN)|(1<<M1_EN));
 	DDRD |= ((1<<M1_DI) | (1 << M5_DI));
 	
 	setup_timer1();
+	//mover_motor(1,UP_M1);
 	mover_motor(1,UP_M1);
 	
 }
