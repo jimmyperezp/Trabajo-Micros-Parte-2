@@ -18,12 +18,22 @@
 
 #define d_PWM 250
 
+//Variables del timer 3 
+
+#define REBOTE_MS 50       //Número de milisegundos
+#define TICKS_PER_MS 1000  // para prescaler 8, 8 MHz → 1 MHz. Número de entradas en la interrupción por milisegundo.
+
+//VARIABLES DEL ANTIRREBOTES
+
+volatile uint8_t int_bloqueado[4];  //Bandera para comprobar si la interrupción INT está bloqueada o no. "1" bloqueada y "0" no.
+volatile uint8_t bounce_int; 		//Variable auxiliar global para avisar a la interrupción del timer sobre qué interrupción de tipo INT reactivar.
+
+
 int fin = 0;
  
- ISR(INT0_vect){	//INT para el SW1
+
 	
-	fin = 1;
-}
+
 
 void setup(){	
 	
@@ -58,6 +68,19 @@ void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 	
 }
 
+void setup_timer3(){	//Es el que uso para el antirrebotes
+	
+		
+		TCCR3A = 0;
+		TCCR3B = (1 << WGM32) | (1 << CS31);  // Modo CTC y prescalado de 8
+		OCR3A  = REBOTE_MS * TICKS_PER_MS;
+		TCNT3  = 0;
+		
+		//Limpio bandera antigua y habilito interrupción del compare
+		TIFR3  |= (1 << OCF3A);
+		TIMSK3 |= (1 << OCIE3A);
+}
+
 void apagar_motor(){
 	
 	TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
@@ -85,14 +108,87 @@ void mover_motor1(){
 	fin = 0;
  }
  
+ void antirrebotes(uint8_t inum){
+	
+	bounce_int = inum;
+	
+	switch(inum) { //Con este switch, trato de manera distinta las interrupciones por INT y por PCINT
+			
+			
+			case 4:  // antirrebotes en PCINT0 (pin PB0)
+			
+			
+			// Enmascaro PCINT0 para deshabilitar esa fuente de interrupción
+			PCMSK0 &= ~(1<<PCINT0);
+			
+			//Limpio bandera
+			PCIFR  |= (1<<PCIF0); 
+			break;
 
- void main (void){
+			case 5:  // antirrebotes en PCINT7 (pin PB7)
+			
+			// Habilito el grupo PCINT0..7 (PCIE0)
+			PCICR  |= (1<<PCIE0);
+			// Enmascaro PCINT7 para deshabilitar esa fuente de interrupción
+			PCMSK0 &= ~(1<<PCINT7);
+			//Limpio bandera
+			PCIFR  |= (1<<PCIF0);
+			break;
+
+			default:
+		
+			EIMSK &= ~(1 << inum);
+			EIFR  |=  (1 << inum);
+			int_bloqueado[inum] = 1; //bandera para ver qué interrupción INT está bloqueada.
+	   break;
+		}
+	
+}
+
+
+ISR(TIMER3_COMPA_vect) {
+	
+	// Deshabilito la interrupción de compare.
+	TIMSK3 &= ~(1<<OCIE3A);
+	
+	switch(bounce_int) {
+		
+		case 4: //reactivo PCINT0
+		PCMSK0 |= (1<<PCINT0);
+		break;
+		
+		case 5: //reactivo PCINT7
+		PCMSK0 |= (1<<PCINT7);
+		break;
+		
+		default:
+		// reactivo solo la INT correspondiente
+		EIMSK |= (1<<bounce_int);
+		// 3) La marco como “no bloqueada”. //Esto solo sirve de cara a tener una flag interna.
+		int_bloqueado[bounce_int] = 0;
+		break;
+	}
+}
+
+ ISR(INT0_vect){	//INT para el SW1
+	 
+	antirrebotes(1);
+	fin = 1;
+}	 
+ 
+ int main (void){
+	 
 	
 	setup();
 	setup_timer1();
+	setup_timer3();
+
 
 	while(1){
 		mover_motor1();
 	}
 	
  }
+ 
+	
+
