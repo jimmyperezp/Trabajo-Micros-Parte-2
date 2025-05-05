@@ -1,4 +1,6 @@
+
 //Prueba para ver direcciones de los motores
+
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -20,13 +22,41 @@
 #define UP_M5 1
 #define DOWN_M5 0
 
+//VARIABLES PARTE 2:
+volatile int dir_m1 = 0;
+volatile int dir_m5 = 0;
+
+
+void apagar_motor(int nmotor){
+	
+	switch(nmotor){
+		
+		case 1: 
+			
+			TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
+
+			
+		break;
+		
+		
+		case 5: 
+			
+			TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
+			
+			
+		break;
+		 
+		
+		default: 
+		break;
+		
+	}
+}
 
 
 void mover_motor(int nmotor, int direccion){
 	
-	
 
-	
 	apagar_motor(nmotor);	//1º Lo apagamos para hacer el cambio de direccion
 	
 	switch(nmotor){
@@ -35,7 +65,7 @@ void mover_motor(int nmotor, int direccion){
 			
 			if (direccion == 1){
 				
-				PORT_M1_EN |= (1 << M1_EN);  
+				TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
 				PORT_M1_DI |= (1 << M1_DI);
 				dir_m1 = 1;
 			
@@ -43,21 +73,21 @@ void mover_motor(int nmotor, int direccion){
 			
 			else{
 				
-				PORT_M1_EN |= (1 << M1_EN);
+				TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
 				PORT_M1_DI &= ~(1 << M1_DI);
 				dir_m1 = 0;
 			}
 			
 			
-		break;
-		
+	
 
+		break;
 		
 		case 5:
 		
 			if (direccion == 1){
 				
-				PORT_M5_EN |= (1 << M5_EN);  
+				TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
 				PORT_M5_DI |= (1 << M5_DI);
 				dir_m5 = 1;
 			
@@ -65,11 +95,13 @@ void mover_motor(int nmotor, int direccion){
 			
 			else{
 				
-				PORT_M5_EN |= (1 << M5_EN);
+				
+				TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
 				PORT_M5_DI &= ~(1 << M5_DI);
 				dir_m5 = 0;
 			}
-			break;
+	
+		break;
 		 
 		
 		default: 
@@ -77,6 +109,8 @@ void mover_motor(int nmotor, int direccion){
 		
 	}
 }
+
+
 
 
 int main(void){
