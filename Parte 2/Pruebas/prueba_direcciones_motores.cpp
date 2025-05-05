@@ -27,6 +27,27 @@ volatile int dir_m1 = 0;
 volatile int dir_m5 = 0;
 
 
+
+void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
+
+	// Prescalado de 8 --> CS5(2:0) = 010
+	// Modo de operacion 10 --> WGM5(3:0) = 1010
+	
+	TCCR1A |= ((1<<COM1A1) | (1<<COM1B1) | (1<<WGM11));
+	TCCR1B |= ((1<<WGM13) | (1<<CS11));
+	
+	//TOP en ICR1 
+	ICR1 = 1000;
+	
+	//OCR1(A y B)
+	OCR1A = d_PWM;
+	OCR1B = d_PWM;
+	
+	//Habilito las interrupciones por coincidencia en OCR1A y OCR1B
+	TIMSK |= ((1 << OCIE1A) | (1 << OCIE1B) ); 	
+	 
+	
+}
 void apagar_motor(int nmotor){
 	
 	switch(nmotor){
@@ -119,6 +140,7 @@ int main(void){
 	DDRB |= ((1<<M5_EN)|(1<<M1_EN));
 	DDRD |= ((1<<M1_DI) | (1 << M5_DI));
 	
+	setup_timer1();
 	mover_motor(1,UP_M1);
 	
 }
