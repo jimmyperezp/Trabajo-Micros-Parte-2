@@ -11,7 +11,7 @@
 #define PORT_M1_DI PORTD
 #define M1_EN PB5
 #define M1_DI PD4
-#define UP_M1 1
+#define uint8_t UP_M1 1
 #define DOWN_M1 0
 
 //Pines, puerto y direcciones del motor 5
