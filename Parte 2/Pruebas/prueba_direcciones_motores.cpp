@@ -115,6 +115,9 @@ void mover_motor(int nmotor, int direccion){
 
 int main(void){
 	
+		
+	DDRB |= ((1<<M5_EN)|(1<<M1_EN));
+	DDRD |= ((1<<M1_DI) | (1 << M5_DI));
 	
 	mover_motor(1,UP_M1);
 	
