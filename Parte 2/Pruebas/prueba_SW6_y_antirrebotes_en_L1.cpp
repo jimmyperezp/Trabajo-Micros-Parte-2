@@ -12,8 +12,8 @@
 
 #define SW6 PB7
 
-#define REBOTE_MS 50       //Número de milisegundos
-#define TICKS_PER_MS 1000  // para prescaler 8, 8 MHz → 1 MHz. Número de entradas en la interrupción por milisegundo.
+#define REBOTE_MS 50UL       //Número de milisegundos
+#define TICKS_PER_MS 1000 UL // para prescaler 8, 8 MHz → 1 MHz. Número de entradas en la interrupción por milisegundo.
 
 
 //VARIABLES DEL ANTIRREBOTES
@@ -108,10 +108,6 @@ ISR(TIMER3_COMPA_vect) {
 
 	
 
-ISR(PCINT16){
-	
-	sw6_flanco();
-}
 
 void SW6_flanco(){  //Esta salta en cada flanco de SW6
 	
@@ -128,7 +124,7 @@ void SW6_flanco(){  //Esta salta en cada flanco de SW6
 		else if (last_state_SW6 == 1 && current_state_SW6 == 0) {
 			// Flanco de bajada: PB7 pasó de alto a bajo.	
 
-			PORT_L1 &~ (1 << L1);
+			PORT_L1 &= ~(1 << L1);
 			
 		}
 		
@@ -137,10 +133,22 @@ void SW6_flanco(){  //Esta salta en cada flanco de SW6
 	
 	
 
+ISR(PCINT0_VECT){
+	
+	SW6_flanco();
+}
+
 //Programa Principal
 int main(void){
+
+	DDRL |= (1<<L1);
+	DDRB &= ~(1 << SW6);
+
+	PCICR |= (1 << PCIE0);  //Habilito el grupo de PCINTS de la 0 a la 7 (SW6 está en PCINT7)
+	PCMSK0 |= (1 << PCINT7); // Y habilito sólo la que me interesa (asociada a SW6)	
 		
-		
+	setup_timer3();
+	
 	while(1){
 		
 	
