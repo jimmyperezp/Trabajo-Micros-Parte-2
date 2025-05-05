@@ -28,7 +28,7 @@ volatile int fin = 0;
 
 void apagar_motor(){
 	
-PORT_M1_EN &= ~(1 << M1_EN);	
+	TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
 }
  
 void mover_motor1(){
@@ -37,7 +37,7 @@ void mover_motor1(){
 	
 	while(fin != 1){
 		
-		PORT_M1_EN |= (1 << M1_EN);
+		TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
 		PORT_M1_DI |= (1 << M1_DI);
 	 }
 	 
@@ -46,8 +46,8 @@ void mover_motor1(){
 	 
 	 while(fin!=1){
 		 
-		 PORT_M1_EN  |= (1<< M1_EN);
-		 PORT_M1_DI  &= ~(1 << M1_DI);
+		TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
+		PORT_M1_DI  &= ~(1 << M1_DI);
 	}
 	
 	fin = 0;
