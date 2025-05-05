@@ -17,7 +17,20 @@
 #define UP_M1 1
 #define DOWN_M1 0
 
+#define PORT_M5_EN PORTB
+#define PORT_M5_DI PORTD
+#define M5_EN PB6
+#define M5_DI PD5
+#define UP_M5 1
+#define DOWN_M5 0
+
+
 #define d_PWM 250
+
+//VARIABLES PARTE 2:
+volatile int dir_m1 = 0;
+volatile int dir_m5 = 0;
+
 
 void setup_timer1(){
 
@@ -125,7 +138,9 @@ void mover_motor(int nmotor, int direccion){
 
 int main (void) {
 	
-	setup_timer1;
+	int cont;
+	
+	setup_timer1();
 	
 	
 	mover_motor(1,UP_M1);
