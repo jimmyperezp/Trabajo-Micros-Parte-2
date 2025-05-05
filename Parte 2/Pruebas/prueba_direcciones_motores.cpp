@@ -20,7 +20,7 @@
 #define M5_DI PD5
 #define UP_M5 1
 #define DOWN_M5 0
-#define d_PWM 500
+#define d_PWM 250
 
 //VARIABLES PARTE 2:
 volatile int dir_m1 = 0;
@@ -33,7 +33,7 @@ void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 	// Prescalado de 8 --> CS5(2:0) = 010
 	// Modo de operacion 10 --> WGM5(3:0) = 1010
 	
-	TCCR1A |= ((1<<COM1A1) | (1<<COM1B1) | (1<<WGM11));
+	TCCR1A |= (1<<WGM11);
 	TCCR1B |= ((1<<WGM13) | (1<<CS11));
 	
 	//TOP en ICR1
@@ -86,7 +86,7 @@ void mover_motor(int nmotor, int direccion){
 		
 		if (direccion){
 			
-			TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
+			TCCR1A |= (1 << COM1A1); //| (1 << COM1A0));
 			PORT_M1_DI |= (1 << M1_DI);
 			dir_m1 = 1;
 			
@@ -94,7 +94,7 @@ void mover_motor(int nmotor, int direccion){
 		
 		else{
 			
-			TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
+			TCCR1A |= (1 << COM1A1); //| (1 << COM1A0));
 			PORT_M1_DI &= ~(1 << M1_DI);
 			dir_m1 = 0;
 		}
@@ -108,7 +108,7 @@ void mover_motor(int nmotor, int direccion){
 		
 		if (direccion){
 			
-			TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
+			TCCR1A |= (1 << COM1B1);//| (1 << COM1B0));
 			PORT_M5_DI |= (1 << M5_DI);
 			dir_m5 = 1;
 			
@@ -117,7 +117,7 @@ void mover_motor(int nmotor, int direccion){
 		else{
 			
 			
-			TCCR1A |= ((1 << COM1B1) | (1 << COM1B0));
+			TCCR1A |= (1 << COM1B1) ;//| (1 << COM1B0));
 			PORT_M5_DI &= ~(1 << M5_DI);
 			dir_m5 = 0;
 		}
@@ -137,11 +137,13 @@ void mover_motor(int nmotor, int direccion){
 int main(void){
 	
 	
-	DDRB |= ((1<<M5_EN)|(1<<M1_EN));
-	DDRD |= ((1<<M1_DI) | (1 << M5_DI));
+	DDRB |= ((1<<M5_EN) | (1<<M1_EN));
+	DDRD |= ((1<<M1_DI) | (1<<M5_DI));
 	
 	setup_timer1();
 	//mover_motor(1,UP_M1);
-	mover_motor(1,UP_M1);
+	mover_motor(1,DOWN_M1);
+	//mover_motor(5,UP_M5);
+	mover_motor(5,DOWN_M5);
 	
 }
