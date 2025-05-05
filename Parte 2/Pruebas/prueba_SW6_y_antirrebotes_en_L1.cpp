@@ -10,8 +10,16 @@
 #define PORT_L1 PORTL
 #define L1 PL6
 
+#define SW6 PB7
+
 #define REBOTE_MS 50       //Número de milisegundos
 #define TICKS_PER_MS 1000  // para prescaler 8, 8 MHz → 1 MHz. Número de entradas en la interrupción por milisegundo.
+
+
+//VARIABLES DEL ANTIRREBOTES
+
+volatile uint8_t int_bloqueado[4];  //Bandera para comprobar si la interrupción INT está bloqueada o no. "1" bloqueada y "0" no.
+volatile uint8_t bounce_int; 		//Variable auxiliar global para avisar a la interrupción del timer sobre qué interrupción de tipo INT reactivar.
 
 
 
@@ -126,13 +134,16 @@ void SW6_flanco(){  //Esta salta en cada flanco de SW6
 		
 		last_state_SW6 = current_state_SW6;
 	}
-		
+	
+	
 
 //Programa Principal
 int main(void){
-				
+		
+		
 	while(1){
-
+		
+	
 	}
 	
 }	
