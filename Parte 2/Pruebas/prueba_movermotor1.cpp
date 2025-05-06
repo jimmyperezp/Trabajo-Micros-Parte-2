@@ -18,7 +18,7 @@
 
 #define d_PWM 250
 
-//Variables del timer 3 
+//Variables del timer 3
 
 #define REBOTE_MS 50       //Número de milisegundos
 #define TICKS_PER_MS 1000  // para prescaler 8, 8 MHz → 1 MHz. Número de entradas en la interrupción por milisegundo.
@@ -29,25 +29,32 @@ volatile uint8_t int_bloqueado[4];  //Bandera para comprobar si la interrupción
 volatile uint8_t bounce_int; 		//Variable auxiliar global para avisar a la interrupción del timer sobre qué interrupción de tipo INT reactivar.
 
 
-int fin = 0;
- 
-
-	
 
 
-void setup(){	
+//SETUPs
+
+void setup(){
 	
 	//Los Pines de direccion y enable son salidas
-	PORT_M1_EN |= (1 << M1_EN);
-	PORT_M1_DI |= (1 << M1_DI);		
 	
-	EIMSK |= (1 << INT0);  //Habilito las interrupciones INT0 e INT1
-	EICRA |= (1 << ISC01);  //Y hago que salte por flanco de bajada
-		
+	DDRB |=  (1 << M1_EN);
+	DDRD |= (1 << M1_DI);
 	
-	}
+	DDRD &= ~(1<< SW1);	//Y el SW6 es una entrada.
+	
+	//Ahora, habilito INT0 (Ahí está el SW1):
+	
+	EIMSK |= (1 << INT0);  //Habilito la interrupcion INT0
+	
+	//Y hago que salte por flanco de bajada
+	EICRA |= (1 << ISC01);
+	EICRA &= ~(1 << ISC00);
 
-void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
+	sei();	//Habilito las interrupciones externas.
+	
+}
+
+void setup_timer1(){   //lo usamos para el PWM que mueve los motores 1 y 5
 
 	// Prescalado de 8 --> CS5(2:0) = 010
 	// Modo de operacion 10 --> WGM5(3:0) = 1010
@@ -70,78 +77,61 @@ void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 
 void setup_timer3(){	//Es el que uso para el antirrebotes
 	
-		
-		TCCR3A = 0;
-		TCCR3B = (1 << WGM32) | (1 << CS31);  // Modo CTC y prescalado de 8
-		OCR3A  = REBOTE_MS * TICKS_PER_MS;
-		TCNT3  = 0;
-		
-		//Limpio bandera antigua y habilito interrupción del compare
-		TIFR3  |= (1 << OCF3A);
-		TIMSK3 |= (1 << OCIE3A);
+	
+	TCCR3A = 0;
+	TCCR3B = (1 << WGM32) | (1 << CS31);  // Modo CTC y prescalado de 8
+	OCR3A  = REBOTE_MS * TICKS_PER_MS;
+	//TCNT3  = 0;
+	
+	//Limpio bandera antigua y habilito interrupción del compare
+	//TIFR3  |= (1 << OCF3A);
+	TIMSK3 |= (1 << OCIE3A);
 }
+
+
+//Apagar y mover motores
 
 void apagar_motor(){
 	
 	TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
 }
- 
-void mover_motor1(){
-	
-	apagar_motor();
-	
-	while(fin != 1){  	//La 1ª vez, fin=0, así que entra al bucle
-		
-		TCCR1A |= (1 << COM1A1);// | (1 << COM1A0));
-		PORT_M1_DI |= (1 << M1_DI);
-	 }
-	 
-	 fin = 0;
-	 apagar_motor();
-	 
-	 while(fin!=1){
-		 
-		TCCR1A |= (1 << COM1A1);// | (1 << COM1A0));
-		PORT_M1_DI  &= ~(1 << M1_DI);
-	}
-	
-	fin = 0;
- }
- 
- void antirrebotes(uint8_t inum){
+
+
+
+void antirrebotes(uint8_t inum){
 	
 	bounce_int = inum;
 	
 	switch(inum) { //Con este switch, trato de manera distinta las interrupciones por INT y por PCINT
-			
-			
-			case 4:  // antirrebotes en PCINT0 (pin PB0)
-			
-			
-			// Enmascaro PCINT0 para deshabilitar esa fuente de interrupción
-			PCMSK0 &= ~(1<<PCINT0);
-			
-			//Limpio bandera
-			PCIFR  |= (1<<PCIF0); 
-			break;
-
-			case 5:  // antirrebotes en PCINT7 (pin PB7)
-			
-			// Habilito el grupo PCINT0..7 (PCIE0)
-			PCICR  |= (1<<PCIE0);
-			// Enmascaro PCINT7 para deshabilitar esa fuente de interrupción
-			PCMSK0 &= ~(1<<PCINT7);
-			//Limpio bandera
-			PCIFR  |= (1<<PCIF0);
-			break;
-
-			default:
 		
-			EIMSK &= ~(1 << inum);
-			EIFR  |=  (1 << inum);
-			int_bloqueado[inum] = 1; //bandera para ver qué interrupción INT está bloqueada.
-	   break;
-		}
+		
+		case 4:  // antirrebotes en PCINT0 (pin PB0)
+		
+		
+		// Enmascaro PCINT0 para deshabilitar esa fuente de interrupción
+		PCMSK0 &= ~(1<<PCINT0);
+		
+		//Limpio bandera
+		PCIFR  |= (1<<PCIF0);
+		break;
+
+		case 5:  // antirrebotes en PCINT7 (pin PB7)
+		
+		// Habilito el grupo PCINT0..7 (PCIE0)
+		PCICR  |= (1<<PCIE0);
+		// Enmascaro PCINT7 para deshabilitar esa fuente de interrupción
+		PCMSK0 &= ~(1<<PCINT7);
+		//Limpio bandera
+		PCIFR  |= (1<<PCIF0);
+		break;
+
+		default:
+		
+		EIMSK &= ~(1 << inum);
+		EIFR  |=  (1 << inum);
+		int_bloqueado[inum] = 1; //bandera para ver qué interrupción INT está bloqueada.
+		break;
+	}
 	
 }
 
@@ -149,7 +139,9 @@ void mover_motor1(){
 ISR(TIMER3_COMPA_vect) {
 	
 	// Deshabilito la interrupción de compare.
-	TIMSK3 &= ~(1<<OCIE3A);
+	// TIMSK3 &= ~(1<<OCIE3A);
+	// Esto creo que no hay que hacerlo, porque si no no lo encenderiamos en ningun punto del codigo
+	
 	
 	switch(bounce_int) {
 		
@@ -170,14 +162,16 @@ ISR(TIMER3_COMPA_vect) {
 	}
 }
 
- ISR(INT0_vect){	//INT para el SW1
-	 
+ISR(INT0_vect){	//INT para el SW1
+	
 	antirrebotes(1);
-	fin = 1;
-}	 
- 
- int main (void){
-	 
+	PORT_M1_DI ^= (1 << M1_DI);
+	
+
+}
+
+int main (void){
+	
 	
 	setup();
 	setup_timer1();
@@ -185,10 +179,10 @@ ISR(TIMER3_COMPA_vect) {
 
 
 	while(1){
-		mover_motor1();
+
 	}
 	
- }
- 
-	
+}
+
+
 
