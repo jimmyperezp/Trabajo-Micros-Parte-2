@@ -1,22 +1,155 @@
 //Prueba inicializacion
 
+//Básicamente voy a probar que el setup funcione en conjunto. 
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
 
+//CONEXIONES DE LOS FINALES DE CARRERA
 #define SW1 PD0
 #define SW5 PD1
 
+//Pines, puerto y direcciones del motor 1
 #define PORT_M1_EN PORTB
 #define PORT_M1_DI PORTD
 #define M1_EN PB5
 #define M1_DI PD4
+#define UP_M1 1
+#define DOWN_M1 0
 
+
+//Pines, puerto y direcciones del motor 5
 #define PORT_M5_EN PORTB
 #define PORT_M5_DI PORTD
 #define M5_EN PB6
 #define M5_DI PD5
+#define UP_M5 1
+#define DOWN_M5 0
 
+
+#define REBOTE_MS 50UL       //Número de milisegundos
+#define TICKS_PER_MS 1000UL  // para prescaler 8, 8 MHz → 1 MHz. Número de entradas en la interrupción por milisegundo.
+
+#define d_PWM 500
+
+
+//VARIABLES DEL ANTIRREBOTES
+
+volatile uint8_t int_bloqueado[4];  //Bandera para comprobar si la interrupción INT está bloqueada o no. "1" bloqueada y "0" no.
+volatile uint8_t bounce_int = 0 ; 
+
+//VARIABLES PARTE 2:
+volatile int dir_m1 = 0;
+volatile int dir_m5 = 0;
+
+//Posiciones de los motores
+volatile int pos_m1 = 0;   // '1' Es que está arriba, y '0' está abajo
+volatile int pos_m5 = 0;
+
+
+// setup de los timers:
+
+
+//TIMER 0:
+void setup_timer0(){	//Sirve para contar hasta 1 mS
+	
+	
+	cli();
+	
+	
+	TCCR0A |= (1 << WGM01);
+	TCCR0B |= (1 << CS01  | 1 << CS00);
+	
+	OCR0A = 125;
+	
+	TIMSK0  |= (1 << OCIE0A);	//Habilito la interrupcion por coincidencia en OCR0A
+	
+	sei();
+	
+	
+}
+
+//TIMER 1:
+void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
+
+	cli();
+	// Prescalado de 8 --> CS5(2:0) = 010
+	// Modo de operacion 10 --> WGM5(3:0) = 1010
+	
+	TCCR1A |= ((1<<WGM11) );// | (1<<COM1A1) | (1<<COM1B1) );
+	TCCR1B |= ((1<<WGM13) | (1<<CS11));
+	
+	//TOP en ICR1 
+	ICR1 = 1000;
+	
+	//OCR1(A y B)
+	OCR1A = d_PWM;
+	OCR1B = d_PWM;
+	
+	//Habilito las interrupciones por coincidencia en OCR1A y OCR1B
+	TIMSK1 |= ((1 << OCIE1A) | (1 << OCIE1B) ); 	
+	
+	sei();
+	
+	
+}
+
+//TIMER3 
+void setup_timer3(){	//Cuenta 50mS. Es el que usamos en el antirrebotes
+	
+		
+		TCCR3A = 0;
+		TCCR3B = (1 << WGM32) | (1 << CS31);  // Modo CTC y prescalado de 8
+		OCR3A  = REBOTE_MS * TICKS_PER_MS;
+		TCNT3  = 0;
+		
+		//Limpio bandera antigua y habilito interrupción del compare
+		TIFR3  |= (1 << OCF3A);
+		TIMSK3 |= (1 << OCIE3A);
+}
+
+
+// ANTIRREBOTES:
+
+void antirrebotes(int inum){
+	
+	bounce_int = inum;
+	
+	switch(inum) { //Con este switch, trato de manera distinta las interrupciones por INT y por PCINT
+			
+			
+			case 4:  // antirrebotes en PCINT0 (pin PB0) --> ASOCIADO A SW4
+			
+	
+			PCMSK0 &= ~(1<<PCINT0);	// Deshabilitamos esa fuente de interrupción
+			
+
+			PCIFR  |= (1<<PCIF0); 	//Limpio bandera
+			break;
+
+			
+			case 5:  // antirrebotes en PCINT7 (pin PB7) --> ASOCIADO A SW5
+			
+			PCMSK0 &= ~(1<<PCINT7);		// deshabilitamos PCINT7 (la de SW5)	
+			PCIFR  |= (1<<PCIF0);	    //Limpio bandera
+			
+			break;
+
+			default:
+		
+			EIMSK &= ~(1 << inum);	//Deshabilitamos la INT correspondiente al SW
+			EIFR  |=  (1 << inum);	
+			int_bloqueado[inum] = 1; //bandera para ver qué interrupción INT está bloqueada.
+			
+			
+			break;
+		}
+	
+}
+
+
+//Apagar y mover los motores
 
 void apagar_motor(int nmotor){
 	
@@ -24,13 +157,16 @@ void apagar_motor(int nmotor){
 		
 		case 1: 
 			
-			PORT_M1_EN &= ~(1 << M1_EN);
+			TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
+
 			
 		break;
-				
-		case 5: 
 		
-			PORT_M5_EN &= ~(1 << M5_EN);
+	
+		case 5: 
+			
+			TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
+			
 			
 		break;
 		 
@@ -43,25 +179,27 @@ void apagar_motor(int nmotor){
 
 
 void mover_motor(int nmotor, int direccion){
-
 	
+	
+
 	apagar_motor(nmotor);	//1º Lo apagamos para hacer el cambio de direccion
 	
 	switch(nmotor){
 		
 		case 1: 
 			
-			if (direccion == 1){
+			TCCR1A |= ((1 << COM1A1)); // | (1 << COM1A0));
+			
+			if (direccion){
 				
-				PORT_M1_EN |= (1 << M1_EN);  
+				
 				PORT_M1_DI |= (1 << M1_DI);
 				dir_m1 = 1;
 			
 			}
 			
-			else{
+			else{	
 				
-				PORT_M1_EN |= (1 << M1_EN);
 				PORT_M1_DI &= ~(1 << M1_DI);
 				dir_m1 = 0;
 			}
@@ -69,13 +207,13 @@ void mover_motor(int nmotor, int direccion){
 			
 		break;
 		
-
-		
 		case 5:
-		
-			if (direccion == 1){
+			
+			TCCR1A |= ((1 << COM1B1)); // | (1 << COM1B0));
 				
-				PORT_M5_EN |= (1 << M5_EN);  
+			if (direccion){
+				
+			
 				PORT_M5_DI |= (1 << M5_DI);
 				dir_m5 = 1;
 			
@@ -83,11 +221,11 @@ void mover_motor(int nmotor, int direccion){
 			
 			else{
 				
-				PORT_M5_EN |= (1 << M5_EN);
 				PORT_M5_DI &= ~(1 << M5_DI);
 				dir_m5 = 0;
 			}
-			break;
+	
+		break;
 		 
 		
 		default: 
@@ -96,36 +234,15 @@ void mover_motor(int nmotor, int direccion){
 	}
 }
 
-setup_parte2(){
 
+//Interrupciones por flancos de bajada en los fines de carrera
 
-	cli();
+void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 	
-	DDRB |= ((1 << M1_EN) | (1 << M5_EN) );
-	DDRD |= ((1 << SW1) | (1 << SW5) | (1 << M1_DI) | (1 << M5_DI));
-
-	
-	EIMSK |= ((1 << INT1) | (1 << INT0));  //Habilito las interrupciones INT0 e INT1
-	EICRA |= ((1 << ISC01)| (1 << ISC11));  //Y hago que ambas salten por flanco de bajada
-	
-	
-	sei();
-
-	mover_motor(1,1);
-	mover_motor(5,1);
-	
-	while ( (pos_m1 != 1) || (pos_m5 != 1)){
-		//Mientras alguna de las dos no sea 1, me quedo en el bucle
-	}
-	
-	//Salgo del bloqueo cuando ambos motores están en su posición '1' (arriba)
-}
-
-void SW1_bajada(){
-		
+	antirrebotes(1);
 	apagar_motor(1);
 	
-	if (dir_m1 == 1){
+	if (dir_m1){
 		
 		pos_m1 = 1;
 
@@ -133,18 +250,20 @@ void SW1_bajada(){
 
 	else{
 		pos_m1 = 0;
-		//recoger_bolas = 0;
+
 	}
 	
-
+	
+	
 }
 
 
-void SW5_bajada(){
+void SW5_bajada(){		//Salta en cada flanco de bajada de SW5
 	
+	antirrebotes(5);
 	apagar_motor(5);
 	
-	if(dir_m5 == 1){
+	if(dir_m5){
 		
 		pos_m5 = 1;
 	}
@@ -157,23 +276,85 @@ void SW5_bajada(){
 	
 	
 }
-	
-	
+
+
+//INTERRUPCIONES
 ISR(INT0_vect){			//PCINT para el SW1
 	
-	sw1_bajada();
+	SW1_bajada();
 }
 
 ISR(INT1_vect){			//PCINT para el SW5
 	
-	sw5_bajada();
+	SW5_bajada();
 }
 
-void main(void){
+ISR(TIMER3_COMPA_vect) {
 	
+	//Aquí habría que poner un enable de algún tipo, para que solo se cuente cuando se haya pedido hacer antirrebotes.
 	
-	setup_parte2();
+	switch(bounce_int) {
+		
+		case 4: 
+		PCMSK0 |= (1<<PCINT0); //reactivo PCINT0
+		break;
+		
+		case 5:
+		PCMSK0 |= (1<<PCINT7);	 //reactivo PCINT7
+		break;
+		
+		default:
+		
+		EIMSK |= (1<<bounce_int);	// reactivo solo la INT correspondiente
+		
+		// Y la marco como “no bloqueada”. //Esto solo sirve de cara a tener una flag interna.
+		int_bloqueado[bounce_int] = 0;
+		break;
+	}
+}
+
+void setup(){
 	
-	while(1){
+	cli();
+	
+	DDRB |= ((1 << M1_EN) | (1 << M5_EN) );
+	DDRD |= ((1 << M1_DI) | (1 << M5_DI));
+	DDRD &= ~((1 << SW1) | (1 << SW5));
+	
+	EIMSK |= ((1 << INT1) | (1 << INT0));  //Habilito las interrupciones INT0 e INT1
+	EICRA |= ((1 << ISC01)| (1 << ISC11));  //Y hago que ambas salten por flanco de bajada
+
+	
+	sei();
+
+	mover_motor(1,UP_M1);
+	mover_motor(5,DOWN_M5);
+	
+	while ( (pos_m1 != 1) || (pos_m5 != 0)){
+		//Mientras alguna de las dos no sea 1, me quedo en el bucle
 	}
 	
+	//Salgo del bloqueo cuando ambos motores están en su posición '1' (arriba)
+}
+
+
+int main(void) {
+	
+	
+	setup_timer0();
+	setup_timer1();
+	setup_timer3();
+	
+	setup();
+	
+	
+	while(1){
+		
+	}
+	
+	
+	
+	
+	
+	
+}
