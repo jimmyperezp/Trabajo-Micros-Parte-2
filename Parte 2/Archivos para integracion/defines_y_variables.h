@@ -45,6 +45,9 @@
 #define UP_M5 1
 #define DOWN_M5 0
 
+//Tiempo de espera para hacer la recarga y darle tiempo a la bola a "subirse" al brazo
+#define ESPERA__MS_RECARGA 1000
+
 //Ciclo de trabajo de los PWM
 #define d_PWM 600
 
