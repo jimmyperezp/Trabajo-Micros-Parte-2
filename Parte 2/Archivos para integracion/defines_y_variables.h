@@ -46,7 +46,7 @@
 #define DOWN_M5 0
 
 //Ciclo de trabajo de los PWM
-#define d_PWM 250
+#define d_PWM 600
 
 //Constantes para el antirrebotes (TIMER 3)
 #define REBOTE_MS 50UL       //Número de milisegundos
