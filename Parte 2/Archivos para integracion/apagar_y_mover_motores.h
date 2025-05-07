@@ -10,6 +10,9 @@ volatile int dir_m5 = 0;
 
 
 void apagar_motor(int nmotor){
+
+	// Para apagar los motores, desactivo el modo PWM del timer que controla cada motor. 
+	// Esto significa que por ese PIN, vaya un '0', es decir, el motor está apagado.
 	
 	switch(nmotor){
 		
@@ -59,15 +62,16 @@ void mover_motor(int nmotor, int direccion){
 	
 
 	apagar_motor(nmotor);	//1º Lo apagamos para hacer el cambio de direccion
+
+	//Y para encenderlo, es el complementario, activo el PWM en modo invertido del PWM que regula cada motor.
 	
 	switch(nmotor){
 		
 		case 1:
 		
-		TCCR1A |= ((1 << COM1A1) | (1 << COM1A0));
+		TCCR1A |= ((1 << COM1A1)); //| (1 << COM1A0)); Depende de si lo quiero en modo invertido o no invertido
 		
 		if (direccion){
-			
 			
 			PORT_M1_DI |= (1 << M1_DI);
 			dir_m1 = 1;
