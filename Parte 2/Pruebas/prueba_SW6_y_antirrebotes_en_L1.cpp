@@ -13,8 +13,8 @@
 #define SW6 PB7
 #define SW1 PD0
 
-#define REBOTE_MS 50    //Número de milisegundos
-#define TICKS_PER_MS 1000// para prescaler 8, 8 MHz → 1 MHz. Número de entradas en la interrupción por milisegundo.
+#define REBOTE_MS 50UL    //Número de milisegundos
+#define TICKS_PER_MS 1000UL// para prescaler 8, 8 MHz → 1 MHz. Número de entradas en la interrupción por milisegundo.
 
 
 //VARIABLES DEL ANTIRREBOTES
@@ -25,37 +25,50 @@ volatile uint8_t bounce_int; 		//Variable auxiliar global para avisar a la inter
 
 //Para el control de la PCINT
 
-volatile uint8_t last_state_SW6 = 1 ;
-volatile uint8_t current_state_SW6 = 0;
+volatile uint8_t last_state_SW6  ;
+volatile uint8_t current_state_SW6 ;
 
 int habilitar_antirrebotes = 0;
 
-volatile uint8_t high = 2;
+volatile uint8_t high = 1;
 volatile uint8_t low = 0;
 
 void setup(){
 	
-	DDRL |=  (1 << L1);
-	DDRB &= ~(1 << SW6);
-	DDRD &= ~(1 << SW1);
+	cli();
 	
+	//Inicializo las variables:
 	high = 1;
 	low = 0;
-	//SI LO CONECTAMOS EN PCINT7:
+	last_state_SW6 = 0;
+	current_state_SW6 = 0;
+	bounce_int = 0;
 	
-	PCICR |= (1 << PCIE0);  //Habilito el grupo de PCINTS de la 0 a la 7 (SW6 está en PCINT7)
+	
+	//Direccionamiento de los puertos
+	DDRL |=  (1 << L1);
+	DDRD &= ~(1 << SW1);
+	PORTD |= (1 << SW1);  //Pongo una resistencia de pull-up al SW1
+	DDRB &= ~(1 << SW6);
+	PORTB |= (1 << SW6);  //Pongo una resistencia de pull-up al SW6
+
+	
+	
+	
+	PCICR |= (1 << PCIE0);   //Habilito el grupo de PCINTS de la 0 a la 7 (SW6 está en PCINT7)
 	PCMSK0 |= (1 << PCINT7); // Y habilito sólo la que me interesa (asociada a SW6)
 	
-	EIMSK |= (1 << INT0);		//Habilito INT0
+	EIMSK |= (1 << INT0);		//Habilito INT0  --> ASOCIADO A SW1
 	EICRA |= (1 << ISC01);		//Y la pongo para que salte en flanco de bajada
 	EICRA &= ~(1 << ISC00);
 
+	PORT_L1 |= (1 << L1);		//Comienzo con la luz encendida
 	
-	PORT_L1 |= (1 << L1);	//Comienzo con la luz encendida
-	
+	sei();
 	
 }
 
+//TIMER3
 void setup_timer3(){
 	
 	
@@ -66,6 +79,7 @@ void setup_timer3(){
 
 	TIMSK3 |= (1 << OCIE3A);
 }
+
 
 
 void antirrebotes(uint8_t inum){
@@ -96,9 +110,9 @@ void antirrebotes(uint8_t inum){
 
 void cincuenta_ms(){
 	
-	int numero_ciclos = 0;
+	static int numero_ciclos = 0;
 	
-	if(habilitar_antirrebotes){
+	if(habilitar_antirrebotes == 1){
 		
 		numero_ciclos++;
 	}
@@ -111,7 +125,7 @@ void cincuenta_ms(){
 		switch(bounce_int) {
 			
 			
-			case 5: //reactivo PCINT7
+			case 6: //reactivo PCINT7
 			
 			PCMSK0 |= (1<<PCINT7);
 			
@@ -127,13 +141,12 @@ void cincuenta_ms(){
 
 void SW6_flanco(){  //Esta salta en cada flanco de SW6
 	
-
 	antirrebotes(6);
 	current_state_SW6 = ((PINB & (1 << SW6))>> SW6);
 	
 
 
-	if ((last_state_SW6 == high) && (current_state_SW6 == low)) {
+	if ((last_state_SW6) && (!current_state_SW6)) {
 		// Flanco de bajada: PB7 pasó de alto a bajo.
 		PORT_L1 ^= (1 << L1);
 		
@@ -166,21 +179,20 @@ ISR(INT0_vect){
 	
 	SW1_bajada();
 }
+
+
 //Programa Principal
 int main(void){
-
 
 	setup();
 	
 	setup_timer3();
-	
-	SW6_flanco();
+
 	while(1){
-		
-		
 	}
 	
 }
+
 
 
 
