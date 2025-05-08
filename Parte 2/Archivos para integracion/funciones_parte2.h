@@ -4,23 +4,24 @@
 #include "apagar_y_mover_motores.h"
 
 
-volatile int pos_m1= 0;		// '1' si M1 está arriba, '0' si abajo
-volatile int pos_m5= 0;		// '1' si M5 está arriba, '0' si abajo
+volatile int pos_m1= 0;					// '1' si M1 está arriba, '0' si abajo
+volatile int pos_m5= 0;					// '1' si M5 está arriba, '0' si abajo
 
-volatile int juego = 0;		// Dice si el juego ha comenzado. Actuará como "enable general"
+volatile int juego = 0;					// Dice si el juego ha comenzado. Actuará como "enable general"
 volatile int disparo = 0;
-volatile int flag_disparo = 0;   //Me sirve para hacer un retorno por cada disparo que haya habido
-volatile int ultimo_disparo= 0;	 //Aviso de que es el último disparo.
+volatile int flag_disparo = 0;		    //Me sirve para hacer un retorno por cada disparo que haya habido
+volatile int ultimo_disparo= 0;			//Aviso de que es el último disparo.
 
-volatile int retornando = 0;	//Estas variables me sirven para hacer el recorrido completo (de recarga y retorno) 
-volatile int recargando = 0;	// sin bloquear.
+volatile int retornando = 0;			//Estas variables me sirven para hacer el recorrido completo (de recarga y retorno)
+volatile int recargando = 0;			// sin bloquear.
 
-volatile int espera_recarga = 0; //Es un enable para esperar 1 segundo con el timer0 hasta que baje la bola por la rampa. 
+volatile int espera_recarga = 0;		//Es un enable para esperar 1 segundo con el timer0 hasta que baje la bola por la rampa.
 volatile int cont_espera_recarga = 0;	//Lo uso para contar los milisegundos necesarios hasta 1 segundo
-volatile int cont_5seg = 0;		//Lo uso para contar "bloques" de 5 segundos con el timer4
+volatile int recarga_terminada = 0;		//Esta sirve para avisar de que la recarga ha terminado. 
+volatile int cont_5seg = 0;				//Lo uso para contar "bloques" de 5 segundos con el timer4
 
-volatile uint8_t current_state_SW6;	// Estas dos, me sirven para ver si el flanco de interrupción de SW6				
-volatile uint8_t last_state_SW6;	// que está en una PCINT, es de subida o bajada
+volatile uint8_t current_state_SW6;		// Estas dos, me sirven para ver si el flanco de interrupción de SW6
+volatile uint8_t last_state_SW6;		// que está en una PCINT, es de subida o bajada
 
 void setup_parte2(){
 	
@@ -40,6 +41,8 @@ void setup_parte2(){
 	cont_espera_recarga = 0;
 	current_state_SW6 = 0;
 	last_state_SW6 = 1;
+	recarga_terminada = 0;
+	
 	
 
 	//Direccionamiento y declaración de los pines y puertos
@@ -75,6 +78,11 @@ void recarga(){
 	
 	//La posición "default" es pos_m1 = 1;
 	
+	//if(recarga_terminada == 1){
+		
+		recarga_terminada = 0;
+		
+	//}
 	if(pos_m1 == 1 && recargando == 0){
 		
 		recargando = 1;		//Me sirve para evaluar qué hacer cuando salte el SW1 la siguiente vez.
@@ -94,7 +102,7 @@ void retorno(){
 	
 	if((pos_m5 == 0) & (retornando == 0)){
 		
-	//	retornando = 1;
+		//	retornando = 1;
 		mover_motor(5,UP_M5);
 		
 	}
@@ -117,11 +125,11 @@ void milisegundo_parte2(){
 		
 		cont_espera_recarga ++;
 		
-		if(cont_espera_recarga > ESPERA__MS_RECARGA){	
+		if(cont_espera_recarga > ESPERA__MS_RECARGA){
 			
-			cont_espera_recarga = 0;	
+			cont_espera_recarga = 0;
 			espera_recarga = 0;
-		
+			
 			recarga();	//Cuando ha llegado a la cuenta máxima, llamo a retorno, para volver a subir M1
 		}
 	}
@@ -133,7 +141,7 @@ void cincoSeg_parte2(){
 	//Salta con el timer4. lo usaré para contar "bloques de 5 segundos" para terminar el juego (si previamente ha empezado)
 	// Y para hacer el retorno cada 5segundos después de cada disparo.
 	
-	if(juego == 1){	
+	if(juego == 1){
 		
 		cont_5seg ++;
 		
@@ -145,6 +153,7 @@ void cincoSeg_parte2(){
 		}
 		
 		if(cont_5seg > 5){		//Cuando haya contado 30 segundos
+			
 			
 			ultimo_disparo = 1;	//Aviso de que el siguiente será el ultimo disparo
 		}
@@ -168,6 +177,7 @@ void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 		
 		if(recargando == 1){	//Si ha subido haciendo la recarga, ya ha terminado de recargar.
 			
+			recarga_terminada = 1;
 			recargando = 0;
 			
 		}
@@ -177,8 +187,8 @@ void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 	else{
 		
 		pos_m1 = 0;
-			
-		if(recargando == 1){	//Si ha bajado haciendo la recarga, 
+		
+		if(recargando == 1){	//Si ha bajado haciendo la recarga,
 			
 			espera_recarga = 1; //Activo la espera, porque después tendrá que volver arriba.
 			
@@ -200,7 +210,7 @@ void SW5_bajada(){		//Salta en cada flanco de bajada de SW5
 		
 		pos_m5 = 1;
 		
-		if(retornando == 1){    //Si ha subido mientras hacia el retorno, 
+		if(retornando == 1){    //Si ha subido mientras hacia el retorno,
 			
 			retorno();	//Vuelvo a llamar a retorno, para devolver M5 abajo
 			
@@ -210,9 +220,9 @@ void SW5_bajada(){		//Salta en cada flanco de bajada de SW5
 	else{
 		
 		pos_m5 = 0;
-				
-	}
 		
+	}
+	
 }
 
 
@@ -238,15 +248,23 @@ void SW6_flanco(){  //Esta salta en cada flanco de SW6
 
 				//Cuando haya disparado si era el ultimo disparo, el juego se termina
 				juego = 0;
+				cont_5seg = 0;
 			}
 			
-		}	
+		}
 	}
 
 	last_state_SW6 = current_state_SW6; //Y actualizo el valor del SW6 para la siguiente comparación
 }
 
 
+//Aviso de terminado la recarga 
+
+int estado_recarga(){
+	
+	//Devolverá un '1' si ha terminado, y un '0' si no. 
+	return recarga_terminada;
+}
 
 
 //Configuro las interrupciones que regulan el funcionamiento:
