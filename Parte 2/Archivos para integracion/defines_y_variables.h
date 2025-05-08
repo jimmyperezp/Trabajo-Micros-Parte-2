@@ -65,7 +65,7 @@ extern volatile int habilitar_antirrebotes;
 extern volatile int juego;
 extern volatile int disparo;
 extern volatile int ultimo_disparo;
-
+extern volatile int recarga_terminada;    
 
 //Variables de los motores 1 y 5:
 
