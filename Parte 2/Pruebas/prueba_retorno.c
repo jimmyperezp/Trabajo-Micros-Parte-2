@@ -264,6 +264,9 @@ int main(void)
 	DDRD |= (1<<M5_DI);
 	
 	DDRD &= ~(1<<SW5);
+
+	EIMSK |= ((1 << INT1) | (1 << INT0));   
+	EICRA |= ((1 << ISC01)| (1 << ISC11));
 	
 	pos_m5 = 0;
 	dir_m5 = 0;
