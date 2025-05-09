@@ -379,11 +379,13 @@ ISR(TIMER4_COMPA_vect){
 		PORT_L1 ^= (1 << L1);	
 	}
 	
+
+	
 }
 
 void setup(){
 	
-	comenzar_parpadeo = 0;
+	comenzar_parpadeo = 1;
 	aux = 0;
 	cli();
 
@@ -425,7 +427,7 @@ int main(void) {
 		aux = get_setup_parte2();
 		
 		if(aux == 1){
-			comenzar_parpadeo = 1;
+			comenzar_parpadeo = 0;
 		}
 		
 		
