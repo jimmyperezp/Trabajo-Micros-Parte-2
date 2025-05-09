@@ -12,7 +12,7 @@ volatile int habilitar_antirrebotes = 0;
 
 void antirrebotes(int inum){
 	
-	
+	habilitar_antirrebotes = 1;
 	bounce_int = inum;
 	
 	switch(inum) { //Con este switch, trato de manera distinta las interrupciones por INT y por PCINT
