@@ -5,7 +5,7 @@
 
 
 volatile int pos_m1= 0;					// '1' si M1 está arriba, '0' si abajo
-volatile int pos_m5= 0;					// '1' si M5 está arriba, '0' si abajo
+volatile int pos_m5= 1;					// '1' si M5 está arriba, '0' si abajo
 
 volatile int juego = 0;					// Dice si el juego ha comenzado. Actuará como "enable general"
 volatile int disparo = 0;
@@ -22,6 +22,25 @@ volatile int cont_5seg = 0;				//Lo uso para contar "bloques" de 5 segundos con 
 
 volatile uint8_t current_state_SW6;		// Estas dos, me sirven para ver si el flanco de interrupción de SW6
 volatile uint8_t last_state_SW6;		// que está en una PCINT, es de subida o bajada
+
+volatile int inic_m5=0;
+volatile int inic_m1=0; 
+volatile int finalizado_m1=0;
+volatile int finalizado_m5=0;
+
+void iniciar_M1(){
+	
+	inic_m1=1;
+	mover_motor(1,UP_M1);
+	
+}
+
+void iniciar_M5(){
+	
+	inic_m5=1;
+	mover_motor(5,DOWN_M5);
+	
+}
 
 void setup_parte2(){
 	
@@ -42,7 +61,9 @@ void setup_parte2(){
 	current_state_SW6 = 0;
 	last_state_SW6 = 1;
 	recarga_terminada = 0;
-	
+	inic_m5=0;
+	inic_m1=0;
+
 	
 
 	//Direccionamiento y declaración de los pines y puertos
@@ -62,7 +83,14 @@ void setup_parte2(){
 	PCMSK0 |= (1 << PCINT7); // Y habilito sólo la que me interesa (asociada a SW6)
 	
 	sei();
+	
+	finalizado_m1=0;
+	finalizado_m5=0;
 
+	iniciar_M1();
+	iniciar_M5();
+	
+/*
 	//En el comienzo, M1 arriba y M5 abajo:
 	mover_motor(1,UP_M1);
 	mover_motor(5,DOWN_M5);
@@ -70,8 +98,16 @@ void setup_parte2(){
 	while ( (pos_m1 != 1) || (pos_m5 != 0)){
 		//Mientras alguna de las dos no haya llegado, me quedo en el bucle
 	}
-	
+	*/
 	//Salgo del bloqueo cuando ambos motores están en la posición inicial
+}
+
+int fin_setup_M1(){
+	return finalizado_m1;
+}
+
+int fin_setup_M5(){
+	return finalizado_m5;
 }
 
 void recarga(){
@@ -98,11 +134,12 @@ void recarga(){
 
 void retorno(){
 	
-	//El motor M5 siempre partirá desde abajo: pos_m5 = 0 al comienzo.
+	// El motor M5 siempre partirá desde abajo: pos_m5 = 0 al comienzo.
+	// Y, siempre que llame a retorno, retornando será =  0
 	
-	if((pos_m5 == 0) & (retornando == 0)){
+	if((pos_m5 == 0) && (retornando == 0)){
 		
-		//	retornando = 1;
+		retornando = 1;
 		mover_motor(5,UP_M5);
 		
 	}
@@ -170,33 +207,39 @@ void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 	
 	antirrebotes(1);	//Primero, filtro el rebote
 	apagar_motor(1);	//Y apago el motor.
-	
-	if (dir_m1){		//Si estaba subiendo, está arriba
-		
+	if(inic_m1==1){
+		inic_m1=0;
+		finalizado_m1=1;
 		pos_m1 = 1;
-		
-		if(recargando == 1){	//Si ha subido haciendo la recarga, ya ha terminado de recargar.
-			
-			recarga_terminada = 1;
-			recargando = 0;
-			
-		}
-
 	}
-
+	
 	else{
+		if (dir_m1){		//Si estaba subiendo, está arriba
 		
-		pos_m1 = 0;
+			pos_m1 = 1;
 		
-		if(recargando == 1){	//Si ha bajado haciendo la recarga,
+			if(recargando == 1){	//Si ha subido haciendo la recarga, ya ha terminado de recargar.
 			
-			espera_recarga = 1; //Activo la espera, porque después tendrá que volver arriba.
+				recarga_terminada = 1;
+				recargando = 0;
 			
-		}
+			}
 
+		}
+	
+		else{
+		
+			pos_m1 = 0;
+		
+			if(recargando == 1){	//Si ha bajado haciendo la recarga,
+			
+				espera_recarga = 1; //Activo la espera, porque después tendrá que volver arriba.
+			
+			}
+
+		}
+	
 	}
-	
-	
 	
 }
 
@@ -205,24 +248,31 @@ void SW5_bajada(){		//Salta en cada flanco de bajada de SW5
 	
 	antirrebotes(5);
 	apagar_motor(5);
-	
-	if(dir_m5){
-		
-		pos_m5 = 1;
-		
-		if(retornando == 1){    //Si ha subido mientras hacia el retorno,
-			
-			retorno();	//Vuelvo a llamar a retorno, para devolver M5 abajo
-			
+	if(inic_m5==1){
+			inic_m5=0;
+			finalizado_m5=1;
+			pos_m5=0;
 		}
-	}
-	
+		
 	else{
 		
-		pos_m5 = 0;
+		if(dir_m5){
 		
-	}
+			pos_m5 = 1;
+		
+			if(retornando == 1){    //Si ha subido mientras hacia el retorno,
+			
+				retorno();	//Vuelvo a llamar a retorno, para devolver M5 abajo
+			
+			}
+		}
 	
+		else{
+		
+			pos_m5 = 0;
+		
+		}
+	}
 }
 
 
@@ -260,10 +310,27 @@ void SW6_flanco(){  //Esta salta en cada flanco de SW6
 
 //Aviso de terminado la recarga 
 
-int estado_recarga(){
+int get_estado_recarga(void){
 	
 	//Devolverá un '1' si ha terminado, y un '0' si no. 
 	return recarga_terminada;
+}
+
+int get_ultimo_disparo(void){
+	
+	return ultimo_disparo;
+	
+}
+
+int get_disparo(void){
+	
+	return disparo;
+	
+}
+
+int get_juego(void){
+	
+	return juego;
 }
 
 
