@@ -111,3 +111,14 @@ void setup_timer5(){  //usado para el PWM de 3 de los motores (conectados en el 
 	
 	sei();
 }
+
+
+void setup_timers(){
+	
+	
+	setup_timer0();
+	setup_timer1();
+	setup_timer3();
+	setup_timer4();
+	setup_timer5();
+}
