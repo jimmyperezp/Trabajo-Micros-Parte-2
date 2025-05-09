@@ -42,14 +42,15 @@
 #define PORT_M5_DI PORTD
 #define M5_EN PB6
 #define M5_DI PD5
-#define UP_M5 1
-#define DOWN_M5 0
+
+#define UP 1
+#define DOWN  0
 
 //Tiempo de espera para hacer la recarga y darle tiempo a la bola a "subirse" al brazo
 #define ESPERA__MS_RECARGA 1000
 
 //Ciclo de trabajo de los PWM
-#define d_PWM 600
+#define d_PWM 500
 
 //Constantes para el antirrebotes (TIMER 3)
 #define REBOTE_MS 50UL       //Número de milisegundos
@@ -59,9 +60,9 @@
 //variables del antirrebotes
 extern volatile int int_bloqueado[4];  //Bandera para comprobar si la interrupción INT está bloqueada o no. "1" bloqueada y "0" no.
 extern volatile int bounce_int;
+
 //Variables que se compartirán entre varias partes:
 extern volatile int habilitar_antirrebotes;
-
 extern volatile int juego;
 extern volatile int disparo;
 extern volatile int ultimo_disparo;
@@ -73,4 +74,10 @@ extern volatile int dir_m1;
 extern volatile int dir_m5;
 extern volatile int pos_m1;
 extern volatile int pos_m5;
+
+extern volatile int setup_M5_iniciado ;
+extern volatile int setup_M1_iniciado ;
+extern volatile int setup_M5_terminado;
+extern volatile int setup_M1_terminado;
+
 
