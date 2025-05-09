@@ -1,12 +1,8 @@
 #include "setup_timers.h"
 
 // FUNCIONES DE MOVER Y APAGAR MOTORES
-
-//VARIABLES PARTE 2:
-volatile int dir_m1 = 0;
-volatile int dir_m5 = 0;
-
-
+volatile int dir_m1;
+volatile int dir_m5;
 
 
 void apagar_motor(int nmotor){
