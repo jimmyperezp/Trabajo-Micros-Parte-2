@@ -47,6 +47,7 @@ void iniciar_M5(){
 void setup_parte2(){
 	
 	
+
 	cli();
 	
 	//Inicializo todas las variables que manejo en esta parte:
@@ -70,9 +71,9 @@ void setup_parte2(){
 	current_state_SW6 = 0;
 	last_state_SW6 = 1;
 	
-	setup_M5_iniciado = 0;
+	setup_M5_iniciado = 0;	
 	setup_M1_iniciado = 0;
-	setup_M5_terminado = 0;
+	setup_M5_terminado = 0; //Las reseteo en cada vez que llaman al setup.
 	setup_M1_terminado = 0;
 	
 
@@ -193,7 +194,6 @@ void cincoSeg_parte2(){
 
 
 
-
 //Interrupciones por flancos de bajada en los fines de carrera
 
 void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
@@ -306,8 +306,7 @@ void SW6_flanco(){  //Esta salta en cada flanco de SW6
 	last_state_SW6 = current_state_SW6; //Y actualizo el valor del SW6 para la siguiente comparación
 }
 
-
-//Aviso de terminado la recarga 
+// Funciones para la comunicación con el resto de partes:
 
 int get_estado_recarga(void){
 	
@@ -315,9 +314,21 @@ int get_estado_recarga(void){
 	return recarga_terminada;
 }
 
+void set_estado_recarga(int estado_recarga_actualizado){
+
+	recarga_terminada	 = estado_recarga_actualizado;		//Sirve para volver a poner a '0' la recarga desde integración.
+	
+}
+
 int get_ultimo_disparo(void){
 	
 	return ultimo_disparo;
+	
+}
+
+void set_ultimo_disparo (int ultimo_disparo_actualizado){
+	
+	ultimo_disparo  = ultimo_disparo_actualizado;
 	
 }
 
@@ -327,9 +338,21 @@ int get_disparo(void){
 	
 }
 
+void set_disparo(int disparo_actualizado){
+	
+	disparo = disparo_actualizado;
+	
+}
+
+
 int get_juego(void){
 	
 	return juego;
+}
+
+void set_juego(int juego_actualizado){
+	
+	juego = juego_actualizado;
 }
 
 int get_setup_parte2(void){
