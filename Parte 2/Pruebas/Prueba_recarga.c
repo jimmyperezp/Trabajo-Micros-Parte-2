@@ -10,21 +10,50 @@
 #define UP 1
 #define DOWN 0
 #define ESPERA__MS_RECARGA 100
-#define d_PWM 500
-#define REBOTE_MS 50UL      
-#define TICKS_PER_MS 1000UL 
+#define d_PWM 700
+#define REBOTE_MS 50UL     
+#define TICKS_PER_MS 100UL 
 
 
 
-volatile int bounce_int;
-volatile int recargando = 0;
+volatile uint8_t bounce_int;
+volatile uint8_t recargando = 0;
 
-volatile int espera_recarga;
-volatile int cont_espera_recarga;
-volatile int recarga_terminada;
+volatile uint8_t espera_recarga;
+volatile uint8_t cont_espera_recarga;
+volatile uint8_t recarga_terminada;
 
-volatile int dir_m1;
-volatile int pos_m1;
+volatile uint8_t dir_m1;
+volatile uint8_t pos_m1;
+
+void setup(){
+	
+	bounce_int = 0;
+	recargando = 0;
+	espera_recarga= 0;
+	cont_espera_recarga = 0;
+	recarga_terminada = 0;
+	dir_m1 = 0;
+	pos_m1 = 1;
+	
+	cli();
+	
+	DDRB |= (1 << M1_EN);
+	DDRD |= (1 << M1_DI);
+	
+	DDRD &= ~(1<<SW1);
+	PORTD |= (1 << SW1);
+	
+	EIMSK |= (1 << INT0);
+	EICRA |= (1 << ISC01);
+	EICRA &= ~(1 << ISC00);
+	
+	DDRL |= (1 << PL6);
+	
+	
+	sei();
+	
+}
 
 void setup_timer0(){	//Sirve para contar hasta 1 mS
 		
@@ -61,9 +90,9 @@ void setup_timer3(){	//Cuenta 50mS. Es el que usamos en el antirrebotes
 	
 	TCCR3A = 0;
 	TCCR3B = (1 << WGM32) | (1 << CS31);  
-	OCR3A  = REBOTE_MS * TICKS_PER_MS;
-	//TCNT3  = 0;
-	//TIFR3  |= (1 << OCF3A);
+	OCR3A  = 500000; // REBOTE_MS * TICKS_PER_MS;
+	TCNT3  = 0;
+	TIFR3  |= (1 << OCF3A);
 	TIMSK3 |= (1 << OCIE3A);
 	
 	
@@ -73,7 +102,7 @@ void setup_timer4(){
 	//cuenta 5 segundos
 	
 	//modo CTC y prescalado de 1024
-	cli();
+	
 	
 	TCCR4B |= ((1 << WGM42) | (1 << CS42) | (1 << CS40));
 	
@@ -82,7 +111,7 @@ void setup_timer4(){
 	TIMSK4 |= (1 << OCIE4A);
 
 	
-	sei();
+	
 	
 }
 
@@ -182,7 +211,7 @@ void cincuenta_ms(){
 }
 
 
-void apagar_motor(int nmotor){
+void apagar_motor(uint8_t nmotor){
 
 	
 	switch(nmotor){
@@ -197,7 +226,7 @@ void apagar_motor(int nmotor){
 	}
 }
 
-void mover_motor(int nmotor, int direccion){
+void mover_motor(uint8_t nmotor, uint8_t direccion){
 	
 
 	//apagar_motor(nmotor);
@@ -208,6 +237,7 @@ void mover_motor(int nmotor, int direccion){
 		
 			if (direccion){
 				
+				//antirrebotes(1);
 				TCCR1A |= ((1 << COM1A1));
 				PORT_M1_DI |= (1 << M1_DI);
 				
@@ -216,8 +246,11 @@ void mover_motor(int nmotor, int direccion){
 			}
 			
 			else{
-				PORT_M1_DI &= ~(1 << M1_DI);
+				
+				//antirrebotes(1);
 				TCCR1A |= ((1 << COM1A1));
+				PORT_M1_DI &= ~(1 << M1_DI);
+				
 				dir_m1 = 0;
 				
 			}
@@ -269,43 +302,13 @@ void milisegundo_parte2(){
 
 
 
-void setup(){
-	
-	bounce_int = 0;
-	recargando = 0;
-	espera_recarga= 0;
-	cont_espera_recarga = 0;
-	recarga_terminada = 0;
-	dir_m1 = 0;
-	pos_m1 = 1;
-		
-	cli();
-	
-	DDRB |= (1 << M1_EN);
-	DDRD |= (1 << M1_DI);
-	
-	DDRD &= ~(1<<SW1);
-	PORTD |= (1 << SW1);
-	
-	EIMSK |= (1 << INT0);   
-	EICRA |= (1 << ISC01);
-	EICRA &= ~(1 << ISC00);
-	 
-	 DDRL |= (1 << PL6);
-	 PORTL |= (1 << PL6);
-	 
-	 sei(); 
-	
 
-	
-	
-	
-}
 
 void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 	
+	apagar_motor(1);
 	antirrebotes(1);	//Primero, filtro el rebote
-	apagar_motor(1);	//Y apago el motor.
+		//Y apago el motor.
 	
 		
 		
@@ -340,15 +343,21 @@ void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 
 ISR(INT0_vect){
 	
-	PORTL ^= (1<<PL6);
+	//apagar_motor(1);
 	SW1_bajada();
+	
 }
 
 ISR(TIMER0_COMPA_vect){	//Se ejecuta cada milisegundo
 	
-	//milisegundo_parte2();
+	milisegundo_parte2();
 	
 }
+
+ISR(TIMER1_COMPA_vect){}
+	
+ISR(TIMER1_COMPB_vect){}
+	
 ISR(TIMER3_COMPA_vect){	//El timer3 interrupmirá cada 50mS
 	
 	cincuenta_ms();
@@ -357,16 +366,8 @@ ISR(TIMER3_COMPA_vect){	//El timer3 interrupmirá cada 50mS
 
 ISR(TIMER4_COMPA_vect){
 	
-	if(espera_recarga == 1){
+	PORTL ^= (1<<PL6);
 		
-		cont_espera_recarga ++;
-		
-		if(cont_espera_recarga >1){
-			
-			recarga();
-		}
-		
-	}
 }
 
 
@@ -375,6 +376,8 @@ int main (void){
 	setup();
 	setup_timers();
 	recarga();
+	
+	sei();
 	
 	while(1){
 		
