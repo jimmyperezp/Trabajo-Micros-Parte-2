@@ -106,9 +106,7 @@ void apagar_motor(uint8_t nmotor){
 void mover_motor(uint8_t nmotor, uint8_t direccion){
 	
 
-	//apagar_motor(nmotor);	//1º Lo apagamos para hacer el cambio de direccion
-
-	//Y para encenderlo, es el complementario, activo el PWM en modo invertido del PWM que regula cada motor.
+	
 	
 	switch(nmotor){
 		
