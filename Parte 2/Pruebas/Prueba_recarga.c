@@ -9,8 +9,8 @@
 #define M1_DI PD4
 #define UP 1
 #define DOWN 0
-#define ESPERA__MS_RECARGA 100
-#define d_PWM 700
+#define ESPERA__MS_RECARGA 1000
+#define d_PWM 900
 #define REBOTE_MS 50UL     
 #define TICKS_PER_MS 100UL 
 
@@ -20,7 +20,7 @@ volatile uint8_t bounce_int;
 volatile uint8_t recargando = 0;
 
 volatile uint8_t espera_recarga;
-volatile uint8_t cont_espera_recarga;
+volatile uint16_t cont_espera_recarga;
 volatile uint8_t recarga_terminada;
 
 volatile uint8_t dir_m1;
@@ -90,7 +90,7 @@ void setup_timer3(){	//Cuenta 50mS. Es el que usamos en el antirrebotes
 	
 	TCCR3A = 0;
 	TCCR3B = (1 << WGM32) | (1 << CS31);  
-	OCR3A  = 500000; // REBOTE_MS * TICKS_PER_MS;
+	OCR3A  = 40000; // REBOTE_MS * TICKS_PER_MS;
 	TCNT3  = 0;
 	TIFR3  |= (1 << OCF3A);
 	TIMSK3 |= (1 << OCIE3A);
@@ -237,9 +237,10 @@ void mover_motor(uint8_t nmotor, uint8_t direccion){
 		
 			if (direccion){
 				
-				//antirrebotes(1);
-				TCCR1A |= ((1 << COM1A1));
+				antirrebotes(1);
 				PORT_M1_DI |= (1 << M1_DI);
+				TCCR1A |= ((1 << COM1A1));
+				
 				
 				dir_m1 = 1;
 				
@@ -247,7 +248,7 @@ void mover_motor(uint8_t nmotor, uint8_t direccion){
 			
 			else{
 				
-				//antirrebotes(1);
+				antirrebotes(1);
 				TCCR1A |= ((1 << COM1A1));
 				PORT_M1_DI &= ~(1 << M1_DI);
 				
@@ -270,12 +271,14 @@ void recarga(){
 	
 	if(pos_m1 == 1 && recargando == 0){
 		
-		recargando = 1;		
+		recargando = 1;	
+		apagar_motor(1)	;
 		mover_motor(1,DOWN);
 	}
 	
 	if(pos_m1 == 0 && recargando == 1){
 		
+		apagar_motor(1);
 		mover_motor(1,UP);
 	}
 	
@@ -306,12 +309,9 @@ void milisegundo_parte2(){
 
 void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 	
-	apagar_motor(1);
+	//apagar_motor(1);
 	antirrebotes(1);	//Primero, filtro el rebote
-		//Y apago el motor.
-	
-		
-		
+
 		if (dir_m1){		//Si estaba subiendo, está arriba
 			
 			pos_m1 = 1;
@@ -343,6 +343,7 @@ void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 
 ISR(INT0_vect){
 	
+	antirrebotes(1);
 	//apagar_motor(1);
 	SW1_bajada();
 	
@@ -373,14 +374,18 @@ ISR(TIMER4_COMPA_vect){
 
 int main (void){
 	
-	setup();
 	setup_timers();
+	setup();
+	
 	recarga();
 	
+	//mover_motor(1,UP);
 	sei();
 	
 	while(1){
-		
-	}
+
+			
+		}
+	
 	
 }
