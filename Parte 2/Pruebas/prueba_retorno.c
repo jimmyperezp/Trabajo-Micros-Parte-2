@@ -18,17 +18,17 @@
 
 
 
-#define REBOTE_MS 50UL     
+#define REBOTE_MS 50UL
 #define TICKS_PER_MS 1000UL
 
- 
+
 volatile uint8_t bounce_int;
 
 volatile uint8_t dir_m5;
 volatile uint8_t pos_m5;
 volatile uint8_t retornando;
 
-
+volatile uint8_t inicio_retorno;
 
 void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 
@@ -52,8 +52,8 @@ void setup_timer3(){	//Cuenta 50mS. Es el que usamos en el antirrebotes
 	
 	
 	TCCR3A = 0;
-	TCCR3B = (1 << WGM32) | (1 << CS31);
-	OCR3A  = 40000; // REBOTE_MS * TICKS_PER_MS;
+	TCCR3B = ((1 << WGM32) | (1 << CS31));
+	OCR3A  = 50000; // REBOTE_MS * TICKS_PER_MS;
 	TCNT3  = 0;
 	TIFR3  |= (1 << OCF3A);
 	TIMSK3 |= (1 << OCIE3A);
@@ -80,14 +80,14 @@ void setup(){
 	retornando = 0;
 
 	
-	sei();	
+	sei();
 	
 }
 
 void apagar_motor(uint8_t nmotor){
 
 	
-	switch(nmotor){		
+	switch(nmotor){
 		
 		case 5:
 		
@@ -211,8 +211,9 @@ void cincuenta_ms(){
 		break;
 
 		case 5:
+		if(!(PIND & (1<<SW5))){
 		EIMSK |= (1 << INT1);
-
+		}
 		break;
 		
 		
@@ -232,41 +233,48 @@ void cincuenta_ms(){
 
 void retorno(){
 	
-		if(pos_m5==0){
-			
-				if(retornando==0) {
-					
-					apagar_motor(5);
-					retornando = 1;
-					mover_motor(5,UP);
-					
-					
-				}
-				else{}
-			
-
-		}
+	if(pos_m5==0){
 		
-		else{
+		if(retornando==0) {
 			
-			if(retornando){
-				
-				//antirrebotes(5);
-				//retornando = 0;
-				apagar_motor(5);
-				mover_motor(5,DOWN);
-			}
+			antirrebotes(5);
+			apagar_motor(5);
+			retornando = 1;
+			mover_motor(5,UP);
+			
+			
 		}
+		else{}
+		
+
+	}
+	
+	else{
+		
+		if(retornando){
+			
+			antirrebotes(5);
+			//retornando = 0;
+			apagar_motor(5);
+			mover_motor(5,DOWN);
+		}
+	}
 	
 	
 
-		
+	
 	
 	
 }
 
 void SW5_bajada(){		//Salta en cada flanco de bajada de SW5. Es análogo a SW1_bajada
 	
+	if(inicio_retorno == 1){
+		antirrebotes(5);
+		inicio_retorno = 0;
+		return;
+		
+	}
 	//apagar_motor(5);
 	antirrebotes(5);
 	if(dir_m5){
@@ -285,7 +293,7 @@ void SW5_bajada(){		//Salta en cada flanco de bajada de SW5. Es análogo a SW1_b
 		pos_m5 = 0;
 		retornando = 0;
 		
-		}
+	}
 }
 
 ISR(INT1_vect){
@@ -315,12 +323,12 @@ int main(void)
 	setup();
 	setup_timer1();
 	setup_timer3();
-	
+	inicio_retorno = 1;
 	
 	retorno();
+	//mover_motor(5,DOWN);
+	//mover_motor(5,UP);
 	
-	
-    while (1){
-    }
+	while (1){
+	}
 }
-
