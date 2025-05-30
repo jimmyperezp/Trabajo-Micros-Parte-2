@@ -9,9 +9,9 @@ void setup_timer0(){	//Sirve para contar hasta 1 mS
 	
 	
 	TCCR0A |= (1 << WGM01);
-	TCCR0B |= (1 << CS01  | 1 << CS00);
+	TCCR0B |= (1 << CS01  | 1 << CS00); // Usando un prescalado de 64, genero 1 pulso cada 8microsegundos
 	
-	OCR0A = 125;
+	OCR0A = 125;	//Así que tengo que contar 125 veces 8 microsegundos para llegar a 1 milisegundo
 	
 	TIMSK0  |= (1 << OCIE0A);	//Habilito la interrupcion por coincidencia en OCR0A
 	
@@ -25,7 +25,7 @@ void setup_timer0(){	//Sirve para contar hasta 1 mS
 void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 
 	cli();
-	// Prescalado de 8 --> CS5(2:0) = 010
+	// Prescalado de 8 --> CS5(2:0) = 010 --> 1 tick cada 125 nS
 	// Modo de operacion 10 --> WGM5(3:0) = 1010
 	
 	TCCR1A |= ((1<<WGM11) );// | (1<<COM1A1) | (1<<COM1B1) );
