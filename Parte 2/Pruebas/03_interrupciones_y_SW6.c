@@ -1,11 +1,9 @@
-
-//Prueba para ver antirrebotes y pulsacion de SW6
-
+/*Prueba para comprobar declaración de interrupciones y SW6.
+Funcionamiento: Cada vez que se pulse el SW6, cambia el estado del LED*/
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
-
 
 #define PORT_L1 PORTL
 #define L1 PL6
@@ -21,7 +19,6 @@
 
 volatile uint8_t int_bloqueado[4];  //Bandera para comprobar si la interrupción INT está bloqueada o no. "1" bloqueada y "0" no.
 volatile uint8_t bounce_int; 		//Variable auxiliar global para avisar a la interrupción del timer sobre qué interrupción de tipo INT reactivar.
-
 
 //Para el control de la PCINT
 
