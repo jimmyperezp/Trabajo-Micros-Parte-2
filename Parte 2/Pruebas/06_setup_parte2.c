@@ -1,6 +1,7 @@
-//Prueba inicializacion
+/*PRUEBA SETUP PARTE 2
+Para iniciar el proceso en las posiciones correctas, hay que empezar con M5 abajo y M1 arriba. El setup hace eso, y al terminar comienza a parpadear el LED.*/
 
-//Básicamente voy a probar que el setup funcione en conjunto.
+//El parpadeo del LED nos sirve para verificar que el programa no se queda bloqueado.
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -18,7 +19,6 @@
 #define UP_M1 1
 #define DOWN_M1 0
 
-
 //Pines, puerto y direcciones del motor 5
 #define PORT_M5_EN PORTB
 #define PORT_M5_DI PORTD
@@ -26,7 +26,6 @@
 #define M5_DI PD5
 #define UP 1
 #define DOWN 0
-
 
 #define REBOTE_MS 50UL       //Número de milisegundos
 #define TICKS_PER_MS 1000UL  // para prescaler 8, 8 MHz ? 1 MHz. Número de entradas en la interrupción por milisegundo.
@@ -59,13 +58,10 @@ volatile int aux;
 
 // setup de los timers:
 
-
-//TIMER 0:
+// TIMER 0:
 void setup_timer0(){	//Sirve para contar hasta 1 mS
 	
-	
 	cli();
-	
 	
 	TCCR0A |= (1 << WGM01);
 	TCCR0B |= (1 << CS01  | 1 << CS00);
@@ -75,7 +71,6 @@ void setup_timer0(){	//Sirve para contar hasta 1 mS
 	TIMSK0  |= (1 << OCIE0A);	//Habilito la interrupcion por coincidencia en OCR0A
 	
 	sei();
-	
 	
 }
 
@@ -100,13 +95,10 @@ void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 	TIMSK1 |= ((1 << OCIE1A) | (1 << OCIE1B) );
 	
 	sei();
-	
-	
 }
 
 //TIMER3
 void setup_timer3(){	//Cuenta 50mS. Es el que usamos en el antirrebotes
-	
 	
 	TCCR3A = 0;
 	TCCR3B = (1 << WGM32) | (1 << CS31);  // Modo CTC y prescalado de 8
@@ -125,7 +117,6 @@ void setup_timer4(){
 	cli();
 	
 	TCCR4B |= ((1 << WGM42) | (1 << CS42) | (1 << CS40));
-	
 	
 	OCR4A = 39060;
 	TIMSK4 |= (1 << OCIE4A);
@@ -146,66 +137,48 @@ void antirrebotes(int inum){
 		
 		case 4:  // antirrebotes en PCINT0 (pin PB0) --> ASOCIADO A SW4
 		
-		
-		PCMSK0 &= ~(1<<PCINT0);	// Deshabilitamos esa fuente de interrupción
-		
-
-		PCIFR  |= (1<<PCIF0); 	//Limpio bandera
+			PCMSK0 &= ~(1<<PCINT0);	// Deshabilitamos esa fuente de interrupción
+			PCIFR  |= (1<<PCIF0); 	//Limpio bandera
 		break;
 
-		
 		case 5:  // antirrebotes en PCINT7 (pin PB7) --> ASOCIADO A SW5
 		
-		PCMSK0 &= ~(1<<PCINT7);		// deshabilitamos PCINT7 (la de SW5)
-		PCIFR  |= (1<<PCIF0);	    //Limpio bandera
+			PCMSK0 &= ~(1<<PCINT7);		// deshabilitamos PCINT7 (la de SW5)
+			PCIFR  |= (1<<PCIF0);	    //Limpio bandera
 		
 		break;
 
 		default:
-		
-		EIMSK &= ~(1 << inum);	//Deshabilitamos la INT correspondiente al SW
-		EIFR  |=  (1 << inum);
-		int_bloqueado[inum] = 1; //bandera para ver qué interrupción INT está bloqueada.
-		
-		
+
+			EIMSK &= ~(1 << inum);	//Deshabilitamos la INT correspondiente al SW
+			EIFR  |=  (1 << inum);
+			int_bloqueado[inum] = 1; //bandera para ver qué interrupción INT está 	bloqueada.
 		break;
 	}
 	
 }
 
-
 //Apagar y mover los motores
-
 void apagar_motor(int nmotor){
 	
 	switch(nmotor){
 		
 		case 1:
-		
-		TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
-
-		
+			TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
 		break;
 		
 		
 		case 5:
-		
-		TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
-		
-		
-		break;
-		
+			TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
+		break;	
 		
 		default:
 		break;
-		
 	}
 }
 
 
 void mover_motor(int nmotor, int direccion){
-	
-	
 
 	apagar_motor(nmotor);	//1º Lo apagamos para hacer el cambio de direccion
 	
@@ -213,45 +186,38 @@ void mover_motor(int nmotor, int direccion){
 		
 		case 1:
 		
-		TCCR1A |= ((1 << COM1A1)); // | (1 << COM1A0));
+			TCCR1A |= ((1 << COM1A1)); // | (1 << COM1A0));
 		
-		if (direccion){
-			
-			
-			PORT_M1_DI |= (1 << M1_DI);
-			dir_m1 = 1;
-			
-		}
-		
-		else{
-			
-			PORT_M1_DI &= ~(1 << M1_DI);
-			dir_m1 = 0;
-		}
-		
-		
+			if (direccion){
+
+				PORT_M1_DI |= (1 << M1_DI);
+				dir_m1 = 1;
+			}
+
+			else{
+
+				PORT_M1_DI &= ~(1 << M1_DI);
+				dir_m1 = 0;
+			}	
 		break;
 		
 		case 5:
 		
-		TCCR1A |= ((1 << COM1B1)); // | (1 << COM1B0));
-		
-		if (direccion){
+			TCCR1A |= ((1 << COM1B1)); // | (1 << COM1B0));
 			
-			
-			PORT_M5_DI |= (1 << M5_DI);
-			dir_m5 = 1;
-			
-		}
-		
-		else{
-			
-			PORT_M5_DI &= ~(1 << M5_DI);
-			dir_m5 = 0;
-		}
+			if (direccion){
+
+				PORT_M5_DI |= (1 << M5_DI);
+				dir_m5 = 1;
+			}
+
+			else{
+
+				PORT_M5_DI &= ~(1 << M5_DI);
+				dir_m5 = 0;
+			}
 		
 		break;
-		
 		
 		default:
 		break;
@@ -261,7 +227,6 @@ void mover_motor(int nmotor, int direccion){
 
 
 //Interrupciones por flancos de bajada en los fines de carrera
-
 void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 	
 	antirrebotes(1);
@@ -272,26 +237,20 @@ void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
 		setup_M1_iniciado = 0;
 		setup_M1_terminado = 1;
 		pos_m1 = 1;
-	}
-	
-	
-	
+	}	
 }
-	
-
 
 int get_setup_parte2(void){
 
-if((setup_M1_terminado) && (setup_M5_terminado)){
-	
-	return 1;
+	if((setup_M1_terminado) && (setup_M5_terminado)){
+		return 1;
+	}
+
+	else{
+		return 0;
+	}
 }
 
-else{
-	
-	return 0;
-}
-}
 void iniciar_M1(){
 	
 	setup_M1_iniciado = 1;
@@ -306,7 +265,7 @@ void iniciar_M5(){
 	
 }
 
-void SW5_bajada(){		//Salta en cada flanco de bajada de SW5
+void SW5_bajada(){	//Salta en cada flanco de bajada de SW5
 	
 	antirrebotes(5);
 	apagar_motor(5);
@@ -338,19 +297,19 @@ void cincuenta_ms(){
 		switch(bounce_int) {
 			
 			case 4:
-			PCMSK0 |= (1<<PCINT0); //reactivo PCINT0: ASOCIADO A SW4
+				PCMSK0 |= (1<<PCINT0); //reactivo PCINT0: ASOCIADO A SW4
 			break;
 			
 			case 6:
-			PCMSK0 |= (1<<PCINT7);	 //reactivo PCINT7 --> ASOCIADO A SW6
+				PCMSK0 |= (1<<PCINT7);	 //reactivo PCINT7 --> ASOCIADO A SW6
 			break;
 			
 			default:
 			
-			EIMSK |= (1<<bounce_int);	// reactivo solo la INT correspondiente
+				EIMSK |= (1<<bounce_int);	// reactivo solo la INT correspondiente
 			
-			// Y la marco como “no bloqueada”. //Esto solo sirve de cara a tener una flag interna.
-			int_bloqueado[bounce_int] = 0;
+				// Y la marco como “no bloqueada”. //Esto solo sirve de cara a tener una flag interna.
+				int_bloqueado[bounce_int] = 0;
 			
 			break;
 		}
@@ -378,14 +337,11 @@ ISR(TIMER4_COMPA_vect){
 		
 		PORT_L1 ^= (1 << L1);	
 	}
-	
-
-	
 }
 
 void setup(){
 	
-	comenzar_parpadeo = 1;
+	comenzar_parpadeo = 0;
 	aux = 0;
 	cli();
 
@@ -407,16 +363,11 @@ void setup(){
 	setup_M5_iniciado = 1;
 	iniciar_M5();
 	
-	
 	sei();
 
 }
 
-
 int main(void) {
-	
-	
-
 	
 	setup();
 
@@ -427,10 +378,8 @@ int main(void) {
 		aux = get_setup_parte2();
 		
 		if(aux == 1){
-			comenzar_parpadeo = 0;
-		}
-		
-		
+			comenzar_parpadeo = 1;
+		}	
 	}
-	
+
 }
