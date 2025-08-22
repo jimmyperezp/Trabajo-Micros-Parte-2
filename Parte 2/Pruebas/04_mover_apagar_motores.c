@@ -47,14 +47,13 @@ void setup(){
 void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 
 	cli();
+	
 	// Prescalado de 8 --> CS5(2:0) = 010
 	// Modo de operacion 10 --> WGM5(3:0) = 1010
-	
 	TCCR1A |= ((1<<WGM11) );// | (1<<COM1A1) | (1<<COM1B1) );
 	TCCR1B |= ((1<<WGM13) | (1<<CS11));
 	
-	//TOP en ICR1
-	ICR1 = 1000;
+	ICR1 = 1000; //TOP en ICR1
 	
 	//OCR1(A y B)
 	OCR1A = d_PWM;
@@ -114,17 +113,17 @@ void mover_motor(int nmotor, int direccion){
 		
 		case 5:
 		
-		TCCR1A |= ((1 << COM1B1)); // | (1 << COM1B0));
-		
-			if (direccion){		
-				PORT_M5_DI |= (1 << M5_DI);			
-			}
+			TCCR1A |= ((1 << COM1B1)); // | (1 << COM1B0));
 			
-			else{				
-				PORT_M5_DI &= ~(1 << M5_DI);
-			}		
+				if (direccion){		
+					PORT_M5_DI |= (1 << M5_DI);			
+				}
+
+				else{				
+					PORT_M5_DI &= ~(1 << M5_DI);
+				}		
 		break;
-				
+
 		default:
 		break;
 		
@@ -132,17 +131,13 @@ void mover_motor(int nmotor, int direccion){
 }
 
 void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
-	
-	//antirrebotes(1);	//Primero, filtro el rebote
-	apagar_motor(1);	//Y apago el motor.
-	
-	
+
+	apagar_motor(1);	//Y apago el motor.	
 }
 
 ISR(INT0_vect){  // Habilito la interrupción de SW1
 	
 	SW1_bajada();
-	
 }
 
 int main(void){
