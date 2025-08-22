@@ -1,12 +1,10 @@
 #include "defines_y_variables.h"
 
 
-//TIMER 0:
-void setup_timer0(){	//Sirve para contar hasta 1 mS
-	
+//TIMER 0: Sirve para contar hasta 1 mS
+void setup_timer0(){	
 	
 	cli();
-	
 	
 	TCCR0A |= (1 << WGM01);
 	TCCR0B |= (1 << CS01  | 1 << CS00); // Usando un prescalado de 64, genero 1 pulso cada 8microsegundos
@@ -15,14 +13,13 @@ void setup_timer0(){	//Sirve para contar hasta 1 mS
 	
 	TIMSK0  |= (1 << OCIE0A);	//Habilito la interrupcion por coincidencia en OCR0A
 	
-	sei();
-	
+	sei();	
 	
 }
 
 
-//TIMER 1:
-void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
+//TIMER 1: lo usamos para dos PWMs (Conectados en PB5 y PB6)
+void setup_timer1(){   
 
 	cli();
 	// Prescalado de 8 --> CS5(2:0) = 010 --> 1 tick cada 125 nS
@@ -64,8 +61,7 @@ void setup_timer3(){	//Cuenta 50mS. Es el que usamos en el antirrebotes
 }
 
 
-//TIMER 4:
-
+//TIMER 4: Cuenta 5 segundos.
 void setup_timer4(){
 	//cuenta 5 segundos
 	
@@ -82,7 +78,6 @@ void setup_timer4(){
 	sei();
 	
 }
-
 
 
 // TIMER 5
@@ -112,9 +107,7 @@ void setup_timer5(){  //usado para el PWM de 3 de los motores (conectados en el 
 	sei();
 }
 
-
 void setup_timers(){
-	
 	
 	setup_timer0();
 	setup_timer1();
