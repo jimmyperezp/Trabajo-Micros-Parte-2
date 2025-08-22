@@ -1,6 +1,6 @@
 // PRUEBA MOTOR 1:
 
-/*Con esta prueba, comprobamos si controlamos bien el motor 1 y si salta la interrupcion correctamente
+/*Con esta prueba, comprobamos si controlamos bien el motor 1 y si salta la interrupcion correctamente.
 El funcionamiento es que vaya de un lado a otro sin parar. Cuando llega al final de un lado, salta la interrupción del 
 fin de carrera correspondiente, y cambia de sentido de giro */
 
