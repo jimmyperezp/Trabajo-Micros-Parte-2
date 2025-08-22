@@ -1,3 +1,11 @@
+/*FUNCIÓN "GLOBAL" RECARGA
+Se ocupa de bajar M1, esperar 1 segundo para que caiga la bola, y volver a subir M1 con la bola cargada*/
+
+
+/*Se ha desarrollado de tal manera que, con llamar 1 vez a recarga, esta se ocupa de hacer todo el movimiento sin bloquear. 
+Para hacerlo, activa ciertas banderas a medida que va realizando sus fases del 
+movimiento. Se va explicando en el código*/
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
@@ -14,8 +22,7 @@
 #define REBOTE_MS 50UL     
 #define TICKS_PER_MS 100UL 
 
-
-
+//Variables globales:
 volatile uint8_t bounce_int;
 volatile uint8_t recargando = 0;
 
@@ -98,20 +105,14 @@ void setup_timer3(){	//Cuenta 50mS. Es el que usamos en el antirrebotes
 	
 }
 
-void setup_timer4(){
-	//cuenta 5 segundos
-	
-	//modo CTC y prescalado de 1024
+void setup_timer4(){ //cuenta 5 segundos
 	
 	
 	TCCR4B |= ((1 << WGM42) | (1 << CS42) | (1 << CS40));
-	
-	
 	OCR4A = 39060;
-	TIMSK4 |= (1 << OCIE4A);
+	//modo CTC y prescalado de 1024
 
-	
-	
+	TIMSK4 |= (1 << OCIE4A);
 	
 }
 
@@ -174,33 +175,28 @@ void cincuenta_ms(){
 			
 			
 			case 1: 
-			EIMSK |= (1 << INT0);
+				EIMSK |= (1 << INT0);
 			break;
 			
 			case 2:
-			EIMSK |= (1 << INT2);	
-
+				EIMSK |= (1 << INT2);	
 			break;
 			
 			case 3:
-			EIMSK |= (1 << INT3);	
-
+				EIMSK |= (1 << INT3);	
 			break;
 			
 			case 4:  
-			PCMSK0 |= (1<<PCINT0);	
-
+				PCMSK0 |= (1<<PCINT0);	
 			break;
 
 			case 5:
-			EIMSK |= (1 << INT1);	
-
+				EIMSK |= (1 << INT1);	
 			break;
 			
 			
 			case 6:  
-			PCMSK0 |= (1<<PCINT7);		
-	
+				PCMSK0 |= (1<<PCINT7);		
 			break;
 
 			default:
@@ -229,7 +225,7 @@ void apagar_motor(uint8_t nmotor){
 void mover_motor(uint8_t nmotor, uint8_t direccion){
 	
 
-	//apagar_motor(nmotor);
+	apagar_motor(nmotor);
 	
 	switch(nmotor){
 		
@@ -240,9 +236,8 @@ void mover_motor(uint8_t nmotor, uint8_t direccion){
 				antirrebotes(1);
 				PORT_M1_DI |= (1 << M1_DI);
 				TCCR1A |= ((1 << COM1A1));
-				
-				
-				dir_m1 = 1;
+
+				dir_m1 = 1; //Si estaba subiendo, me guardo que está arriba.
 				
 			}
 			
@@ -252,7 +247,7 @@ void mover_motor(uint8_t nmotor, uint8_t direccion){
 				TCCR1A |= ((1 << COM1A1));
 				PORT_M1_DI &= ~(1 << M1_DI);
 				
-				dir_m1 = 0;
+				dir_m1 = 0;  //Y si estaba bajando, está abajo.
 				
 			}
 			break;
@@ -269,14 +264,14 @@ void recarga(){
 	recarga_terminada = 0;
 	
 	
-	if(pos_m1 == 1 && recargando == 0){
+	if(pos_m1 == 1 && recargando == 0){ //Se cumple la 1º vez que llamo a esta funcion
 		
 		recargando = 1;	
 		apagar_motor(1)	;
 		mover_motor(1,DOWN);
 	}
 	
-	if(pos_m1 == 0 && recargando == 1){
+	if(pos_m1 == 0 && recargando == 1){  // Esto es cuando haya pasado 1s abajo
 		
 		apagar_motor(1);
 		mover_motor(1,UP);
@@ -286,25 +281,21 @@ void recarga(){
 
 void milisegundo_parte2(){
 	
-	if(espera_recarga == 1){
+	if(espera_recarga == 1){ //Si estoy esperando abajo, 
 		
-		cont_espera_recarga ++;
+		cont_espera_recarga ++; //cuento 1ms mas
 		
-		if(cont_espera_recarga > ESPERA__MS_RECARGA){
+		if(cont_espera_recarga > ESPERA__MS_RECARGA){ //Y cuando he llegado a la cuenta, entonces continúo:
 			
 			cont_espera_recarga = 0;
 			espera_recarga = 0;
 			
+			//Vuelvo a llamar a recarga. Ahora, recargando = 1 y pos_m1 = 0.
 			recarga();	
 		}
 	}
 	
 }
-
-
-
-
-
 
 
 void SW1_bajada(){	//Salta en cada flanco de bajada de SW1
