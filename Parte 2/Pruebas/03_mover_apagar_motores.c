@@ -4,6 +4,10 @@
  * Author : jaime
 */
 
+/*Esta prueba sirve para probar la función desarrollada llamada mover_motor
+A su vez, esta función hace uso de otra: apagar_motor.
+Estas funciones las usarán los miembros de las otras partes, así que probamos su funcionamiento.*/
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
