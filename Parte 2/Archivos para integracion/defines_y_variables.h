@@ -19,8 +19,6 @@
 #define M1_EN PB5
 #define M1_DI PD4
 
-
-
 //Pines y puerto motor 2
 #define PORT_M2 PORTL
 #define M2_EN PL3
