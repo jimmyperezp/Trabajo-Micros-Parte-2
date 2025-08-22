@@ -1,6 +1,5 @@
 #include "defines_y_variables.h"
 
-
 //TIMER 0: Sirve para contar hasta 1 mS
 void setup_timer0(){	
 	
