@@ -36,7 +36,6 @@ void setup(){
 	DDRD |= ((1<<M1_DI) | (1<<M5_DI));
 	
 	DDRD &= ~((1<<SW1)|(1<<SW5));
-	
 
 }
 
@@ -61,7 +60,6 @@ void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 	TIMSK1 |= ((1 << OCIE1A) | (1 << OCIE1B) );
 	
 	sei();
-	
 	
 }
 

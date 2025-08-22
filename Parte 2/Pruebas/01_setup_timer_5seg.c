@@ -1,6 +1,10 @@
 //PRUEBA TIMER 4 (CADA 5 SEGUNDOS)
+
 /*Es el que usaré para hacer el retorno de manera periódica.
 Esta prueba me sirve también, para confirmar el setup de los timers*/
+
+/*El funcionamiento esperado es: cada 5 segundos, se cambia el estado 
+del LED (Parpadeará cada 5 segundos)*/
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -9,7 +13,6 @@ Esta prueba me sirve también, para confirmar el setup de los timers*/
 #define L1 PL6
 
 void setup_timer4(){ //cuenta 5 segundos
-	
 	
 	cli(); // Deshabilito las interrupciones temporalmente
 	
