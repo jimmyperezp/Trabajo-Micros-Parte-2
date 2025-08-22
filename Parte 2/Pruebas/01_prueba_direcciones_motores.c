@@ -1,7 +1,6 @@
 
 //Prueba para ver direcciones de los motores
 
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
@@ -25,8 +24,6 @@
 #define d_PWM 500
 
 
-
-
 void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 
 	// Prescalado de 8 --> CS5(2:0) = 010
@@ -45,98 +42,73 @@ void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
 	//Habilito las interrupciones por coincidencia en OCR1A y OCR1B
 	TIMSK1 |= ((1 << OCIE1A) | (1 << OCIE1B) );
 	
-	
 }
 
 void apagar_motor(int nmotor){
 	
 	switch(nmotor){
 		
-		case 1:
-		
-		TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
-
-		
+		case 1:	
+			TCCR1A &= ~((1 << COM1A1) | (1 << COM1A0));
 		break;
-		
-		
+			
 		case 5:
-		
-		TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
-		
-		
+			TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
 		break;
-		
 		
 		default:
 		break;
-		
 	}
 }
 
 
 void mover_motor(int nmotor, int direccion){
 	
-
 	apagar_motor(nmotor);	//1º Lo apagamos para hacer el cambio de direccion
 	
 	switch(nmotor){
 		
 		case 1:
-		TCCR1A |= (1 << COM1A1); //| (1 << COM1A0));
+			TCCR1A |= (1 << COM1A1); //| (1 << COM1A0));
 		
-		if (direccion){
-			
-			
-			PORT_M1_DI |= (1 << M1_DI);
-			dir_m1 = 1;
-			
-		}
-		
-		else{
-			
-			
-			PORT_M1_DI &= ~(1 << M1_DI);
-			dir_m1 = 0;
-		}
-		
-		
-		
+			if (direccion){
 
+				PORT_M1_DI |= (1 << M1_DI);
+				dir_m1 = 1;			
+			}
+
+			else{	
+				PORT_M1_DI &= ~(1 << M1_DI);
+				dir_m1 = 0;
+			}
+		
 		break;
 		
 		case 5:
 		
-		TCCR1A |= (1 << COM1B1);//| (1 << COM1B0));
-		
-		if (direccion){
+			TCCR1A |= (1 << COM1B1);//| (1 << COM1B0));
 			
-			
-			PORT_M5_DI |= (1 << M5_DI);
-			dir_m5 = 1;
-			
-		}
-		
-		else{
-			
-			PORT_M5_DI &= ~(1 << M5_DI);
-			dir_m5 = 0;
-		}
+			if (direccion){
+
+				PORT_M5_DI |= (1 << M5_DI);
+				dir_m5 = 1;
+			}
+
+			else{
+
+				PORT_M5_DI &= ~(1 << M5_DI);
+				dir_m5 = 0;
+			}
 		
 		break;
-		
 		
 		default:
 		break;
-		
 	}
 }
 
 
-
-
 int main(void){
-	
 	
 	DDRB |= ((1<<M5_EN) | (1<<M1_EN));
 	DDRD |= ((1<<M1_DI) | (1<<M5_DI));
