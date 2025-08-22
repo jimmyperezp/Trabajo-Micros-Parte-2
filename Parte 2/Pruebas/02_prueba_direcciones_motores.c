@@ -1,5 +1,6 @@
+// Prueba para ver direcciones de los motores
 
-//Prueba para ver direcciones de los motores
+/* También sirve para ver si los timers configurados como PWM van bien. (Estos son los encargados de mover los motores) */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
