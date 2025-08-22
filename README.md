@@ -16,6 +16,7 @@ Estos códigos corresponden a los sistemas de recarga y retorno de la maqueta de
 ## Contexto: 
 
 **1: Soporte empleado: Microcontrolador**
+
 El objetivo de este trabajo era el control de una maqueta utilizando un microcontrolador. En este caso, se utilizó el AVR ATMEGA 640.
 
 Para conocer y realizar el direccionamiento, conexionado y correcta utilización del micro, se debe utilizar el datasheet del mismo .
@@ -23,10 +24,12 @@ Para conocer y realizar el direccionamiento, conexionado y correcta utilización
 En cuanto al software, todo el proyecto se desarrolló en Microchip Studio. En dicho entorno se puede acceder a los puertos del micro para comprobar en todo momento su estado, por lo que era la solución más adecuada.
 
 **Maqueta**
+
 Este trabajo en concreto se encargaba de manejar una maqueta de una bolera. Esta se dividía en 3 partes. 
 Los códigos de este repositorio son los desarrollados para gestionar y controlar la segunda de estas partes; encargada de gestionar el sistema de recarga y de retorno de las bolas (ver figura del sistema en la documentación).
 
 **Procedimiento**
+
 En este repositorio se fue trabajando con los códigos exclusivamente de esta segunda parte. Una vez comprobada su funcionalidad, gracias a las pruebas que se encuentran disponibles, se prosiguió con la integración y adaptación del resto de partes de manera remota. 
 
 
