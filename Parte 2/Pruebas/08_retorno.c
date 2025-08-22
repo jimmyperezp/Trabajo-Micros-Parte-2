@@ -1,7 +1,9 @@
+/*FUNCIÓN RETORNO: 
+Cada 5 segundos (lo indica el timer 4), si ha comenzado el juego, subo M5. Cuando ha llegado arriba, lo bajo.*/
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
-
 
 #define SW5 PD1
 
@@ -16,48 +18,37 @@
 
 #define d_PWM 750
 
-
-
 #define REBOTE_MS 50UL
 #define TICKS_PER_MS 1000UL
 
 
 volatile uint8_t bounce_int;
-
 volatile uint8_t dir_m5;
 volatile uint8_t pos_m5;
 volatile uint8_t retornando;
-
 volatile uint8_t inicio_retorno;
 
 void setup_timer1(){   //lo usamos para dos PWMs (Conectados en PB5 y PB6)
-
-	
 	
 	TCCR1A |= (1<<WGM11);
 	TCCR1B |= ((1<<WGM13) | (1<<CS11));
-	
 	
 	ICR1 = 999;
 	
 	OCR1A = d_PWM;
 	OCR1B = d_PWM;
 	
-	TIMSK1 |= ((1 << OCIE1A) | (1 << OCIE1B) );
-	
-	
+	TIMSK1 |= ((1 << OCIE1A) | (1 << OCIE1B) );	
 }
 
 void setup_timer3(){	//Cuenta 50mS. Es el que usamos en el antirrebotes
-	
-	
+		
 	TCCR3A = 0;
 	TCCR3B = ((1 << WGM32) | (1 << CS31));
 	OCR3A  = 50000; // REBOTE_MS * TICKS_PER_MS;
 	TCNT3  = 0;
 	TIFR3  |= (1 << OCF3A);
-	TIMSK3 |= (1 << OCIE3A);
-	
+	TIMSK3 |= (1 << OCIE3A);	
 	
 }
 
@@ -79,19 +70,17 @@ void setup(){
 	bounce_int = 0;
 	retornando = 0;
 
-	
 	sei();
 	
 }
 
 void apagar_motor(uint8_t nmotor){
-
 	
 	switch(nmotor){
 		
 		case 5:
 		
-		TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
+			TCCR1A &= ~((1 << COM1B1) | (1 << COM1B0));
 		
 		
 		break;
@@ -239,7 +228,7 @@ void retorno(){
 			
 			antirrebotes(5);
 			apagar_motor(5);
-			retornando = 1;
+			retornando = 1; //lo pongo a 1. Cuando salte SW5, me preguntará si estaba retornando.
 			mover_motor(5,UP);
 			
 			
@@ -286,6 +275,8 @@ void SW5_bajada(){		//Salta en cada flanco de bajada de SW5. Es análogo a SW1_b
 			retorno();	//Vuelvo a llamar a retorno, para devolver M5 abajo
 			
 		}
+
+		//y si han pedido que suba sin estar retornando por algún motivo, entonces se queda ahí.
 	}
 	
 	else{
