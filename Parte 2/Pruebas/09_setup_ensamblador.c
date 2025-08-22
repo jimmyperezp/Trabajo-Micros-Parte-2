@@ -1,7 +1,5 @@
 //FUNCIÓN setup_parte2 EN ENSAMBLADOR
 
-
-
 //HACEMOS VISIBLE LA FUNCIÓN PARA C
 
 .global setup_parte2
@@ -36,7 +34,6 @@
 
 // === setup_parte2 ===
 setup_parte2:
-
 
 cli
 
