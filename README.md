@@ -6,8 +6,9 @@ Estos códigos corresponden a los sistemas de recarga y retorno de la maqueta de
 
 <div style="display: flex; justify-content: center;">
  <img src="https://github.com/jimmyperezp/jimmyperezp/blob/main/cpp.svg" alt="c++" width="60" height="60"/>  
-   <img src="https://github.com/jimmyperezp/jimmyperezp/blob/main/MStudio_logo.png" alt="microchip" width ="60" height="60"/>
+ <img src="https://github.com/jimmyperezp/jimmyperezp/blob/main/MStudio_logo.png" alt="microchip" width ="60" height="60"/>
  <img src="https://github.com/jimmyperezp/Programacion_de_sistemas/blob/main/logo%20escuela.png" alt="logo industriales" width="300" height="100"/> 
+ <img src="https://github.com/jimmyperezp/Trabajo-Micros-Parte-2/blob/main/logo_escuela_cut.png" alt="logo industriales" width="300" height="100"/> 
 </div>
 
 <br><br>
